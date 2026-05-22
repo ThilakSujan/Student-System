@@ -44,6 +44,11 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <?php if (isset($_SESSION['role']) && $_SESSION['role'] == 'admin'): ?>
         <div class="nav-section">Admin</div>
 
+        <a href="staff.php"
+           class="nav-link <?php echo ($current_page == 'staff.php' || $current_page == 'staff_add.php' || $current_page == 'staff_edit.php') ? 'active' : ''; ?>">
+            <i class="bi bi-people-fill"></i> Staff Management
+        </a>
+
         <a href="admin_panel.php"
            class="nav-link <?php echo ($current_page == 'admin_panel.php') ? 'active' : ''; ?>">
             <i class="bi bi-shield-lock"></i> User Management
