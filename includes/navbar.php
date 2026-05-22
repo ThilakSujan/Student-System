@@ -26,7 +26,7 @@
             <?php echo isset($_SESSION['username']) ? htmlspecialchars($_SESSION['username']) : ''; ?>
         </span>
 
-        <a href="logout.php" class="btn btn-outline-danger btn-sm">
+        <a href="../../auth/logout.php" class="btn btn-outline-danger btn-sm">
             <i class="bi bi-box-arrow-right"></i> Logout
         </a>
 

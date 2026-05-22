@@ -1,55 +1,36 @@
 <?php
 session_start();
 
-// If already logged in, redirect
+// If already logged in, go straight to the dashboard
 if (isset($_SESSION['user_id'])) {
-    header("Location: students.php");
+    header("Location: ../dashboard/dashboard.php");
     exit();
 }
 
-include 'db_pdo.php';
+include '../config/db_pdo.php';
 
-$error   = "";
-$success = "";
+$error = "";
 
-if (isset($_POST['register'])) {
-    $username        = trim($_POST['username']);
-    $email           = trim($_POST['email']);
-    $password        = $_POST['password'];
-    $confirm_password = $_POST['confirm_password'];
+if (isset($_POST['login'])) {
+    $email    = trim($_POST['email']);
+    $password = $_POST['password'];
 
-    // Validation
-    if (empty($username) || empty($email) || empty($password) || empty($confirm_password)) {
+    if (empty($email) || empty($password)) {
         $error = "Please fill in all fields.";
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error = "Please enter a valid email address.";
-    } elseif (strlen($password) < 6) {
-        $error = "Password must be at least 6 characters.";
-    } elseif ($password !== $confirm_password) {
-        $error = "Passwords do not match.";
     } else {
-        // Check if email or username already exists
-        $stmt = $pdo->prepare("SELECT id FROM users WHERE email = :email OR username = :username");
-        $stmt->execute([':email' => $email, ':username' => $username]);
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE email = :email");
+        $stmt->execute([':email' => $email]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($stmt->rowCount() > 0) {
-            $error = "Username or email already exists.";
+        if ($user && password_verify($password, $user['password'])) {
+            $_SESSION['user_id']  = $user['id'];
+            $_SESSION['username'] = $user['username'];
+            $_SESSION['email']    = $user['email'];
+            $_SESSION['role']     = $user['role'];
+            header("Location: ../dashboard/dashboard.php");
+            exit();
         } else {
-            // First registered user becomes admin, rest are students
-            $countStmt = $pdo->query("SELECT COUNT(*) FROM users");
-            $userCount = $countStmt->fetchColumn();
-            $role      = ($userCount == 0) ? 'admin' : 'student';
-
-            // Hash password and insert user
-            $hashed = password_hash($password, PASSWORD_DEFAULT);
-            $stmt   = $pdo->prepare("INSERT INTO users (username, email, password, role) VALUES (:username, :email, :password, :role)");
-            $stmt->execute([
-                ':username' => $username,
-                ':email'    => $email,
-                ':password' => $hashed,
-                ':role'     => $role
-            ]);
-            $success = "Account created! You can now sign in. New accounts register as Student by default.";
+            $error = "Invalid email or password.";
         }
     }
 }
@@ -59,7 +40,7 @@ if (isset($_POST['register'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register – Student System</title>
+    <title>Login – Student System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
@@ -86,10 +67,10 @@ if (isset($_POST['register'])) {
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 24px 0;
-            overflow-x: hidden;
+            overflow: hidden;
         }
 
+        /* Animated background grid */
         body::before {
             content: '';
             position: fixed;
@@ -102,13 +83,14 @@ if (isset($_POST['register'])) {
             z-index: 0;
         }
 
+        /* Glowing orbs */
         body::after {
             content: '';
             position: fixed;
             width: 600px;
             height: 600px;
-            background: radial-gradient(circle, rgba(124,92,252,0.12) 0%, transparent 70%);
-            bottom: -150px;
+            background: radial-gradient(circle, rgba(79,142,247,0.12) 0%, transparent 70%);
+            top: -150px;
             right: -100px;
             z-index: 0;
             pointer-events: none;
@@ -118,8 +100,8 @@ if (isset($_POST['register'])) {
             position: fixed;
             width: 400px;
             height: 400px;
-            background: radial-gradient(circle, rgba(79,142,247,0.10) 0%, transparent 70%);
-            top: -100px;
+            background: radial-gradient(circle, rgba(124,92,252,0.10) 0%, transparent 70%);
+            bottom: -100px;
             left: -80px;
             z-index: 0;
             pointer-events: none;
@@ -129,7 +111,7 @@ if (isset($_POST['register'])) {
             position: relative;
             z-index: 1;
             width: 100%;
-            max-width: 460px;
+            max-width: 440px;
             padding: 16px;
             animation: slideUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
         }
@@ -153,7 +135,7 @@ if (isset($_POST['register'])) {
             font-size: 13px;
             letter-spacing: 0.18em;
             text-transform: uppercase;
-            color: var(--accent2);
+            color: var(--accent);
             margin-bottom: 32px;
             display: flex;
             align-items: center;
@@ -164,7 +146,7 @@ if (isset($_POST['register'])) {
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent2), var(--accent));
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
         }
 
         h1 {
@@ -173,6 +155,7 @@ if (isset($_POST['register'])) {
             font-size: 28px;
             line-height: 1.2;
             margin-bottom: 6px;
+            color: var(--text);
         }
 
         .subtitle {
@@ -187,11 +170,9 @@ if (isset($_POST['register'])) {
             color: var(--muted);
             margin-bottom: 6px;
             letter-spacing: 0.04em;
-            display: block;
         }
 
         .form-control {
-            width: 100%;
             background: var(--input-bg);
             border: 1px solid var(--border);
             border-radius: 10px;
@@ -204,18 +185,18 @@ if (isset($_POST['register'])) {
 
         .form-control:focus {
             background: var(--input-bg);
-            border-color: var(--accent2);
-            box-shadow: 0 0 0 3px rgba(124,92,252,0.15);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(79,142,247,0.15);
             color: var(--text);
             outline: none;
         }
 
         .form-control::placeholder { color: #3a3f52; }
 
-        .btn-register {
+        .btn-login {
             width: 100%;
             padding: 12px;
-            background: linear-gradient(135deg, var(--accent2) 0%, var(--accent) 100%);
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
             border: none;
             border-radius: 10px;
             color: #fff;
@@ -228,8 +209,8 @@ if (isset($_POST['register'])) {
             margin-top: 8px;
         }
 
-        .btn-register:hover  { opacity: 0.9; transform: translateY(-1px); }
-        .btn-register:active { transform: translateY(0); }
+        .btn-login:hover  { opacity: 0.9; transform: translateY(-1px); }
+        .btn-login:active { transform: translateY(0); }
 
         .divider {
             display: flex;
@@ -247,19 +228,19 @@ if (isset($_POST['register'])) {
             background: var(--border);
         }
 
-        .login-link {
+        .register-link {
             text-align: center;
             font-size: 14px;
             color: var(--muted);
         }
 
-        .login-link a {
+        .register-link a {
             color: var(--accent);
             text-decoration: none;
             font-weight: 500;
         }
 
-        .login-link a:hover { text-decoration: underline; }
+        .register-link a:hover { text-decoration: underline; }
 
         .alert-error {
             background: rgba(242,87,87,0.1);
@@ -268,19 +249,6 @@ if (isset($_POST['register'])) {
             padding: 10px 14px;
             font-size: 13px;
             color: var(--danger);
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .alert-success {
-            background: rgba(52,211,153,0.1);
-            border: 1px solid rgba(52,211,153,0.3);
-            border-radius: 10px;
-            padding: 10px 14px;
-            font-size: 13px;
-            color: var(--success);
             margin-bottom: 20px;
             display: flex;
             align-items: center;
@@ -301,8 +269,8 @@ if (isset($_POST['register'])) {
             Student System
         </div>
 
-        <h1>Create account</h1>
-        <p class="subtitle">Register to get access to the system</p>
+        <h1>Welcome back</h1>
+        <p class="subtitle">Sign in to manage student records</p>
 
         <?php if ($error): ?>
             <div class="alert-error">
@@ -314,30 +282,7 @@ if (isset($_POST['register'])) {
             </div>
         <?php endif; ?>
 
-        <?php if ($success): ?>
-            <div class="alert-success">
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path d="M9 12l2 2 4-4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <circle cx="12" cy="12" r="10" stroke-width="2"/>
-                </svg>
-                <?php echo htmlspecialchars($success); ?>
-                <a href="login.php" style="color:var(--success); margin-left:6px; font-weight:600;">Sign in →</a>
-            </div>
-        <?php endif; ?>
-
-        <form action="register.php" method="POST">
-
-            <div class="mb-3">
-                <label class="form-label">Username</label>
-                <input
-                    type="text"
-                    name="username"
-                    class="form-control"
-                    placeholder="yourname"
-                    value="<?php echo isset($_POST['username']) ? htmlspecialchars($_POST['username']) : ''; ?>"
-                    required
-                >
-            </div>
+        <form action="login.php" method="POST">
 
             <div class="mb-3">
                 <label class="form-label">Email Address</label>
@@ -357,30 +302,19 @@ if (isset($_POST['register'])) {
                     type="password"
                     name="password"
                     class="form-control"
-                    placeholder="Min. 6 characters"
+                    placeholder="••••••••"
                     required
                 >
             </div>
 
-            <div class="mb-3">
-                <label class="form-label">Confirm Password</label>
-                <input
-                    type="password"
-                    name="confirm_password"
-                    class="form-control"
-                    placeholder="Repeat your password"
-                    required
-                >
-            </div>
-
-            <button type="submit" name="register" class="btn-register">Create Account</button>
+            <button type="submit" name="login" class="btn-login">Sign In</button>
 
         </form>
 
         <div class="divider">or</div>
 
-        <div class="login-link">
-            Already have an account? <a href="login.php">Sign in</a>
+        <div class="register-link">
+            Don't have an account? <a href="register.php">Create one</a>
         </div>
 
     </div>

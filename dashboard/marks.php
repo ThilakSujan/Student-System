@@ -1,12 +1,12 @@
 <?php
-require_once 'includes/auth.php';
+require_once '../includes/auth.php';
 require_role(['admin', 'staff', 'student']);
 
 $pageTitle   = 'Marks';
 $currentPage = 'marks';
-require 'includes/header.php';
-require 'includes/sidebar.php';
-include 'db.php';
+require '../includes/header.php';
+require '../includes/sidebar.php';
+include '../config/db.php';
 
 $student = null;
 $students = [];
@@ -24,7 +24,7 @@ if (is_student()) {
 
 <div class="main-content d-flex flex-column min-vh-100">
 
-    <?php require 'includes/navbar.php'; ?>
+    <?php require '../includes/navbar.php'; ?>
 
     <div class="content-area flex-grow-1">
 
@@ -107,6 +107,6 @@ if (is_student()) {
 
     </div>
 
-    <?php require 'includes/footer.php'; ?>
+    <?php require '../includes/footer.php'; ?>
 
 </div>

@@ -1,12 +1,12 @@
 <?php
-require_once 'includes/auth.php';
+require_once '../includes/auth.php';
 require_role(['admin']);
 
-$pageTitle = "Edit Staff";
+$page_title = "Edit Staff";
 $currentPage = 'staff';
-require 'includes/header.php';
-require 'includes/sidebar.php';
-include 'db_pdo.php';
+require '../includes/header.php';
+require '../includes/sidebar.php';
+include '../config/db_pdo.php';
 
 $error = "";
 $success = "";
@@ -86,7 +86,7 @@ if (isset($_POST['update_staff'])) {
 
 <div id="content">
 
-    <?php require 'includes/navbar.php'; ?>
+    <?php require '../includes/navbar.php'; ?>
 
     <div id="main-content">
 
@@ -204,6 +204,6 @@ if (isset($_POST['update_staff'])) {
 
     </div>
 
-    <?php require 'includes/footer.php'; ?>
+    <?php require '../includes/footer.php'; ?>
 
 </div>

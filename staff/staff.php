@@ -1,12 +1,12 @@
 <?php
-require_once 'includes/auth.php';
+require_once '../includes/auth.php';
 require_role(['admin']);
 
-$pageTitle = "Staff Management";
+$page_title = "Staff Management";
 $currentPage = 'staff';
-require 'includes/header.php';
-require 'includes/sidebar.php';
-include 'db_pdo.php';
+require '../includes/header.php';
+require '../includes/sidebar.php';
+include '../config/db_pdo.php';
 
 $success = "";
 $error = "";
@@ -34,7 +34,7 @@ $staff_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <div id="content">
 
-    <?php require 'includes/navbar.php'; ?>
+    <?php require '../includes/navbar.php'; ?>
 
     <div id="main-content">
 
@@ -123,6 +123,6 @@ $staff_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     </div>
 
-    <?php require 'includes/footer.php'; ?>
+    <?php require '../includes/footer.php'; ?>
 
 </div>

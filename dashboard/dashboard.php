@@ -1,7 +1,7 @@
 <?php
-require_once 'includes/auth.php';
+require_once '../includes/auth.php';
 require_login();
-include 'db.php';
+include '../config/db.php';
 
 $currentPage = 'dashboard';
 $pageTitle = 'Dashboard';
@@ -45,13 +45,13 @@ $totalUsersQuery = mysqli_query(
 
 $totalUsers = mysqli_fetch_assoc($totalUsersQuery)['total'];
 
-require 'includes/header.php';
-require 'includes/sidebar.php';
+require '../includes/header.php';
+require '../includes/sidebar.php';
 ?>
 
 <div class="main-content d-flex flex-column min-vh-100">
 
-    <?php require 'includes/navbar.php'; ?>
+    <?php require '../includes/navbar.php'; ?>
 
     <div class="content-area flex-grow-1">
 
@@ -291,6 +291,6 @@ require 'includes/sidebar.php';
 
     </div>
 
-    <?php require 'includes/footer.php'; ?>
+    <?php require '../includes/footer.php'; ?>
 
 </div>

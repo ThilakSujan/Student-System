@@ -1,11 +1,11 @@
 <?php
-require_once 'includes/auth.php';
+require_once '../includes/auth.php';
 require_role(['admin']);
 
 $page_title = "User Management";
-require 'includes/header.php';
-require 'includes/sidebar.php';
-include 'db_pdo.php';
+require '../includes/header.php';
+require '../includes/sidebar.php';
+include '../config/db_pdo.php';
 
 $success = "";
 $error   = "";
@@ -61,7 +61,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <!-- Content -->
 <div id="content">
-<?php require 'includes/navbar.php'; ?>
+<?php require '../includes/navbar.php'; ?>
 <div id="main-content">
 
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -204,5 +204,5 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </div>
 
 </div>
-<?php require 'includes/footer.php'; ?>
+<?php require '../includes/footer.php'; ?>
 </div>

@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'db_pdo.php';
+include '../config/db_pdo.php';
 
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
     header("Location: students.php");
