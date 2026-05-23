@@ -1,7 +1,6 @@
-<!-- Footer -->
-    <footer>
-        &copy; <?php echo date('Y'); ?> Student Information Management System. All rights reserved.
-    </footer>
+<footer>
+    &copy; <?php echo date('Y'); ?> Student Information Management System. All rights reserved.
+</footer>
 
 </div><!-- /#content -->
 </div><!-- /#wrapper -->

@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-// If already logged in, redirect
 if (isset($_SESSION['user_id'])) {
     header("Location: ../dashboard/dashboard.php");
     exit();
@@ -13,12 +12,11 @@ $error   = "";
 $success = "";
 
 if (isset($_POST['register'])) {
-    $username        = trim($_POST['username']);
-    $email           = trim($_POST['email']);
-    $password        = $_POST['password'];
+    $username         = trim($_POST['username']);
+    $email            = trim($_POST['email']);
+    $password         = $_POST['password'];
     $confirm_password = $_POST['confirm_password'];
 
-    // Validation
     if (empty($username) || empty($email) || empty($password) || empty($confirm_password)) {
         $error = "Please fill in all fields.";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -28,28 +26,21 @@ if (isset($_POST['register'])) {
     } elseif ($password !== $confirm_password) {
         $error = "Passwords do not match.";
     } else {
-        // Check if email or username already exists
         $stmt = $pdo->prepare("SELECT id FROM users WHERE email = :email OR username = :username");
         $stmt->execute([':email' => $email, ':username' => $username]);
 
         if ($stmt->rowCount() > 0) {
             $error = "Username or email already exists.";
         } else {
-            // First registered user becomes admin, rest are students
             $countStmt = $pdo->query("SELECT COUNT(*) FROM users");
             $userCount = $countStmt->fetchColumn();
             $role      = ($userCount == 0) ? 'admin' : 'student';
+            $hashed    = password_hash($password, PASSWORD_DEFAULT);
 
-            // Hash password and insert user
-            $hashed = password_hash($password, PASSWORD_DEFAULT);
-            $stmt   = $pdo->prepare("INSERT INTO users (username, email, password, role) VALUES (:username, :email, :password, :role)");
-            $stmt->execute([
-                ':username' => $username,
-                ':email'    => $email,
-                ':password' => $hashed,
-                ':role'     => $role
-            ]);
-            $success = "Account created! You can now sign in. New accounts register as Student by default.";
+            $pdo->prepare("INSERT INTO users (username, email, password, role) VALUES (:u, :e, :p, :r)")
+                ->execute([':u' => $username, ':e' => $email, ':p' => $hashed, ':r' => $role]);
+
+            $success = "Account created successfully! You can now sign in.";
         }
     }
 }
@@ -59,330 +50,280 @@ if (isset($_POST['register'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register – Student System</title>
+    <title>Registration | Academic Portal</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
         :root {
-            --bg:        #0d0f14;
-            --panel:     #13161d;
-            --border:    #1f2330;
-            --accent:    #4f8ef7;
-            --accent2:   #7c5cfc;
-            --text:      #e8eaf0;
-            --muted:     #6b7280;
-            --danger:    #f25757;
-            --success:   #34d399;
-            --input-bg:  #1a1e28;
+            --brand-primary: #1e293b;
+            --brand-accent: #3b82f6;
+            --bg-surface: #f8fafc;
+            --input-bg: #ffffff;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
         body {
-            background: var(--bg);
-            color: var(--text);
-            font-family: 'DM Sans', sans-serif;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: #e2e8f0;
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 24px 24px;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 24px 0;
-            overflow-x: hidden;
         }
 
-        body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background-image:
-                linear-gradient(var(--border) 1px, transparent 1px),
-                linear-gradient(90deg, var(--border) 1px, transparent 1px);
-            background-size: 48px 48px;
-            opacity: 0.4;
-            z-index: 0;
-        }
-
-        body::after {
-            content: '';
-            position: fixed;
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, rgba(124,92,252,0.12) 0%, transparent 70%);
-            bottom: -150px;
-            right: -100px;
-            z-index: 0;
-            pointer-events: none;
-        }
-
-        .orb2 {
-            position: fixed;
-            width: 400px;
-            height: 400px;
-            background: radial-gradient(circle, rgba(79,142,247,0.10) 0%, transparent 70%);
-            top: -100px;
-            left: -80px;
-            z-index: 0;
-            pointer-events: none;
-        }
-
-        .card-wrap {
-            position: relative;
-            z-index: 1;
-            width: 100%;
-            max-width: 460px;
-            padding: 16px;
-            animation: slideUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(32px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-
-        .card {
-            background: var(--panel);
-            border: 1px solid var(--border);
+        .login-card {
+            width: 1000px;
+            max-width: 95%;
+            height: auto; /* Allow growth for the longer register form */
+            min-height: 650px;
+            background: white;
             border-radius: 20px;
-            padding: 44px 40px;
-            box-shadow: 0 32px 64px rgba(0,0,0,0.5);
-        }
-
-        .brand {
-            font-family: 'Syne', sans-serif;
-            font-weight: 800;
-            font-size: 13px;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            color: var(--accent2);
-            margin-bottom: 32px;
             display: flex;
-            align-items: center;
-            gap: 8px;
+            overflow: hidden;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
         }
 
-        .brand-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent2), var(--accent));
-        }
-
-        h1 {
-            font-family: 'Syne', sans-serif;
-            font-weight: 700;
-            font-size: 28px;
-            line-height: 1.2;
-            margin-bottom: 6px;
-        }
-
-        .subtitle {
-            font-size: 14px;
-            color: var(--muted);
-            margin-bottom: 32px;
-        }
-
-        .form-label {
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--muted);
-            margin-bottom: 6px;
-            letter-spacing: 0.04em;
-            display: block;
-        }
-
-        .form-control {
-            width: 100%;
-            background: var(--input-bg);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            color: var(--text);
-            padding: 11px 14px;
-            font-size: 14px;
-            font-family: 'DM Sans', sans-serif;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-
-        .form-control:focus {
-            background: var(--input-bg);
-            border-color: var(--accent2);
-            box-shadow: 0 0 0 3px rgba(124,92,252,0.15);
-            color: var(--text);
-            outline: none;
-        }
-
-        .form-control::placeholder { color: #3a3f52; }
-
-        .btn-register {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, var(--accent2) 0%, var(--accent) 100%);
-            border: none;
-            border-radius: 10px;
+        /* ── Info Side ── */
+        .info-side {
+            background-color: var(--brand-primary);
+            width: 40%;
+            padding: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
             color: #fff;
-            font-family: 'Syne', sans-serif;
-            font-weight: 600;
-            font-size: 15px;
-            letter-spacing: 0.04em;
-            cursor: pointer;
-            transition: opacity 0.2s, transform 0.15s;
-            margin-top: 8px;
+            position: relative;
         }
 
-        .btn-register:hover  { opacity: 0.9; transform: translateY(-1px); }
-        .btn-register:active { transform: translateY(0); }
+        .portal-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--brand-accent);
+        }
+
+        .info-side h1 {
+            font-weight: 700;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-side p {
+            color: #94a3b8;
+            font-weight: 300;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .badge-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .badge-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            font-size: 0.82rem;
+            color: #cbd5e1;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* ── Form Side ── */
+        .form-side {
+            flex: 1;
+            padding: 50px 60px;
+            background: var(--bg-surface);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .header-area h2 {
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 8px;
+        }
+
+        .header-area p {
+            color: #64748b;
+            font-size: 0.95rem;
+            margin-bottom: 30px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 12px 12px 52px;
+            background: var(--input-bg);
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--brand-accent);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: var(--brand-primary);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+            transition: 0.2s;
+            cursor: pointer;
+        }
+
+        .btn-submit:hover {
+            background: #0f172a;
+            transform: translateY(-1px);
+        }
 
         .divider {
+            margin: 25px 0;
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin: 24px 0;
-            color: var(--muted);
-            font-size: 12px;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
-        .divider::before,
-        .divider::after {
+
+        .divider::before, .divider::after {
             content: '';
             flex: 1;
-            height: 1px;
-            background: var(--border);
+            border-bottom: 1px solid #e2e8f0;
         }
 
-        .login-link {
+        .divider:not(:empty)::before { margin-right: .75em; }
+        .divider:not(:empty)::after { margin-left: .75em; }
+
+        .footer-text {
             text-align: center;
-            font-size: 14px;
-            color: var(--muted);
+            font-size: 0.9rem;
+            color: #64748b;
         }
 
-        .login-link a {
-            color: var(--accent);
+        .footer-text a {
+            color: var(--brand-accent);
             text-decoration: none;
-            font-weight: 500;
+            font-weight: 600;
         }
 
-        .login-link a:hover { text-decoration: underline; }
-
-        .alert-error {
-            background: rgba(242,87,87,0.1);
-            border: 1px solid rgba(242,87,87,0.3);
-            border-radius: 10px;
-            padding: 10px 14px;
-            font-size: 13px;
-            color: var(--danger);
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        @media (max-width: 900px) {
+            .login-card { flex-direction: column; width: 450px; }
+            .info-side { width: 100%; padding: 40px; }
+            .badge-list { display: none; }
+            .form-side { padding: 40px; }
         }
-
-        .alert-success {
-            background: rgba(52,211,153,0.1);
-            border: 1px solid rgba(52,211,153,0.3);
-            border-radius: 10px;
-            padding: 10px 14px;
-            font-size: 13px;
-            color: var(--success);
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .mb-3 { margin-bottom: 18px; }
     </style>
 </head>
 <body>
-<div class="orb2"></div>
 
-<div class="card-wrap">
-    <div class="card">
+<div class="login-card">
+    <div class="info-side">
+        <div class="portal-icon">
+            <i class="bi bi-person-plus-fill"></i>
+        </div>
+        <h1>Join the <br>Portal</h1>
+        <p>Complete the registration to access the integrated academic ecosystem.</p>
+        
+        <div class="badge-list">
+            <div class="badge-item">
+                <i class="bi bi-info-circle-fill text-primary"></i>
+                <span>First User Policy: The first account created assumes <strong>Admin</strong> privileges automatically.</span>
+            </div>
+            <div class="badge-item">
+                <i class="bi bi-people-fill text-info"></i>
+                <span>Student Default: Standard registration applies the <strong>Student</strong> role to all subsequent users.</span>
+            </div>
+        </div>
+    </div>
 
-        <div class="brand">
-            <div class="brand-dot"></div>
-            Student System
+    <div class="form-side">
+        <div class="header-area">
+            <h2>Create Account</h2>
+            <p>Start your journey by setting up your profile.</p>
         </div>
 
-        <h1>Create account</h1>
-        <p class="subtitle">Register to get access to the system</p>
-
         <?php if ($error): ?>
-            <div class="alert-error">
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <circle cx="12" cy="12" r="10" stroke-width="2"/>
-                    <path d="M12 8v4m0 4h.01" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                <?php echo htmlspecialchars($error); ?>
+            <div class="alert alert-danger border-0 py-2 mb-3" style="background:#fef2f2; color:#b91c1c; border-radius:10px; font-size:0.85rem;">
+                <i class="bi bi-exclamation-circle-fill me-2"></i> <?= htmlspecialchars($error) ?>
             </div>
         <?php endif; ?>
 
         <?php if ($success): ?>
-            <div class="alert-success">
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path d="M9 12l2 2 4-4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <circle cx="12" cy="12" r="10" stroke-width="2"/>
-                </svg>
-                <?php echo htmlspecialchars($success); ?>
-                <a href="login.php" style="color:var(--success); margin-left:6px; font-weight:600;">Sign in →</a>
+            <div class="alert alert-success border-0 py-2 mb-3" style="background:#f0fdf4; color:#15803d; border-radius:10px; font-size:0.85rem;">
+                <i class="bi bi-check-circle-fill me-2"></i> <?= htmlspecialchars($success) ?>
+                <a href="login.php" class="fw-bold text-decoration-none ms-1">Login here →</a>
             </div>
         <?php endif; ?>
 
-        <form action="register.php" method="POST">
-
-            <div class="mb-3">
-                <label class="form-label">Username</label>
-                <input
-                    type="text"
-                    name="username"
-                    class="form-control"
-                    placeholder="yourname"
-                    value="<?php echo isset($_POST['username']) ? htmlspecialchars($_POST['username']) : ''; ?>"
-                    required
-                >
+        <form method="POST" action="register.php">
+            <div class="input-wrapper">
+                <i class="bi bi-person"></i>
+                <input type="text" name="username" class="form-input" 
+                       placeholder="Choose Username" 
+                       value="<?= isset($_POST['username']) ? htmlspecialchars($_POST['username']) : '' ?>" required>
             </div>
 
-            <div class="mb-3">
-                <label class="form-label">Email Address</label>
-                <input
-                    type="email"
-                    name="email"
-                    class="form-control"
-                    placeholder="you@example.com"
-                    value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>"
-                    required
-                >
+            <div class="input-wrapper">
+                <i class="bi bi-envelope"></i>
+                <input type="email" name="email" class="form-input" 
+                       placeholder="Email Address" 
+                       value="<?= isset($_POST['email']) ? htmlspecialchars($_POST['email']) : '' ?>" required>
             </div>
 
-            <div class="mb-3">
-                <label class="form-label">Password</label>
-                <input
-                    type="password"
-                    name="password"
-                    class="form-control"
-                    placeholder="Min. 6 characters"
-                    required
-                >
+            <div class="input-wrapper">
+                <i class="bi bi-lock"></i>
+                <input type="password" name="password" class="form-input" 
+                       placeholder="Password (Min. 6 characters)" required>
             </div>
 
-            <div class="mb-3">
-                <label class="form-label">Confirm Password</label>
-                <input
-                    type="password"
-                    name="confirm_password"
-                    class="form-control"
-                    placeholder="Repeat your password"
-                    required
-                >
+            <div class="input-wrapper">
+                <i class="bi bi-shield-lock"></i>
+                <input type="password" name="confirm_password" class="form-input" 
+                       placeholder="Confirm Password" required>
             </div>
 
-            <button type="submit" name="register" class="btn-register">Create Account</button>
-
+            <button type="submit" name="register" class="btn-submit">
+                Register Account
+            </button>
         </form>
 
-        <div class="divider">or</div>
+        <div class="divider">Already Registered?</div>
 
-        <div class="login-link">
-            Already have an account? <a href="login.php">Sign in</a>
+        <div class="footer-text">
+            Have an account? <a href="login.php">Sign In</a>
         </div>
-
     </div>
 </div>
 

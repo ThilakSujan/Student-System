@@ -23,7 +23,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
 
     <?php if (isset($_SESSION['role']) && in_array($_SESSION['role'], ['admin', 'staff'], true)): ?>
         <a href="../students/index.php"
-           class="nav-link <?php echo ($current_page == 'index.php') ? 'active' : ''; ?>">
+           class="nav-link <?php echo ($current_page == 'index.php' && strpos($_SERVER['PHP_SELF'], '/students/') !== false) ? 'active' : ''; ?>">
             <i class="bi bi-person-plus"></i> Add Student
         </a>
 
@@ -31,12 +31,22 @@ $current_page = basename($_SERVER['PHP_SELF']);
            class="nav-link <?php echo ($current_page == 'students.php') ? 'active' : ''; ?>">
             <i class="bi bi-people"></i> View Students
         </a>
+
+        <a href="../subjects/index.php"
+           class="nav-link <?php echo ($current_page == 'index.php' && strpos($_SERVER['PHP_SELF'], '/subjects/') !== false) ? 'active' : ''; ?>">
+            <i class="bi bi-book"></i> Subject Management
+        </a>
+
+        <a href="../marks/add.php"
+           class="nav-link <?php echo ($current_page == 'add.php') ? 'active' : ''; ?>">
+            <i class="bi bi-plus-circle"></i> Add Marks
+        </a>
     <?php endif; ?>
 
     <?php if (isset($_SESSION['role']) && in_array($_SESSION['role'], ['admin', 'staff', 'student'], true)): ?>
-        <a href="../dashboard/marks.php"
-           class="nav-link <?php echo ($current_page == 'marks.php') ? 'active' : ''; ?>">
-            <i class="bi bi-card-checklist"></i> Marks
+        <a href="../marks/index.php"
+           class="nav-link <?php echo ($current_page == 'index.php' && strpos($_SERVER['PHP_SELF'], '/marks/') !== false) ? 'active' : ''; ?>">
+            <i class="bi bi-graph-up"></i> Marks
         </a>
     <?php endif; ?>
 

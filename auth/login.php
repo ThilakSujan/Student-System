@@ -1,15 +1,15 @@
 <?php
 session_start();
 
-// If already logged in, go straight to the dashboard
+// 1. Initialize $error at the very top so the HTML always finds it
+$error = "";
+
 if (isset($_SESSION['user_id'])) {
     header("Location: ../dashboard/dashboard.php");
     exit();
 }
 
 include '../config/db_pdo.php';
-
-$error = "";
 
 if (isset($_POST['login'])) {
     $email    = trim($_POST['email']);
@@ -40,283 +40,200 @@ if (isset($_POST['login'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login – Student System</title>
+    <title>System Login | Academic Portal</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
         :root {
-            --bg:        #0d0f14;
-            --panel:     #13161d;
-            --border:    #1f2330;
-            --accent:    #4f8ef7;
-            --accent2:   #7c5cfc;
-            --text:      #e8eaf0;
-            --muted:     #6b7280;
-            --danger:    #f25757;
-            --success:   #34d399;
-            --input-bg:  #1a1e28;
+            --brand-primary: #1e293b;
+            --brand-accent: #3b82f6;
+            --bg-surface: #f8fafc;
+            --input-bg: #ffffff;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
         body {
-            background: var(--bg);
-            color: var(--text);
-            font-family: 'DM Sans', sans-serif;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: #e2e8f0;
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 24px 24px;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
         }
 
-        /* Animated background grid */
-        body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background-image:
-                linear-gradient(var(--border) 1px, transparent 1px),
-                linear-gradient(90deg, var(--border) 1px, transparent 1px);
-            background-size: 48px 48px;
-            opacity: 0.4;
-            z-index: 0;
-        }
-
-        /* Glowing orbs */
-        body::after {
-            content: '';
-            position: fixed;
-            width: 600px;
+        .login-card {
+            width: 1000px;
+            max-width: 95%;
             height: 600px;
-            background: radial-gradient(circle, rgba(79,142,247,0.12) 0%, transparent 70%);
-            top: -150px;
-            right: -100px;
-            z-index: 0;
-            pointer-events: none;
-        }
-
-        .orb2 {
-            position: fixed;
-            width: 400px;
-            height: 400px;
-            background: radial-gradient(circle, rgba(124,92,252,0.10) 0%, transparent 70%);
-            bottom: -100px;
-            left: -80px;
-            z-index: 0;
-            pointer-events: none;
-        }
-
-        .card-wrap {
-            position: relative;
-            z-index: 1;
-            width: 100%;
-            max-width: 440px;
-            padding: 16px;
-            animation: slideUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(32px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-
-        .card {
-            background: var(--panel);
-            border: 1px solid var(--border);
+            background: white;
             border-radius: 20px;
-            padding: 44px 40px;
-            box-shadow: 0 32px 64px rgba(0,0,0,0.5);
-        }
-
-        .brand {
-            font-family: 'Syne', sans-serif;
-            font-weight: 800;
-            font-size: 13px;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            color: var(--accent);
-            margin-bottom: 32px;
             display: flex;
-            align-items: center;
-            gap: 8px;
+            overflow: hidden;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
         }
 
-        .brand-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent), var(--accent2));
-        }
-
-        h1 {
-            font-family: 'Syne', sans-serif;
-            font-weight: 700;
-            font-size: 28px;
-            line-height: 1.2;
-            margin-bottom: 6px;
-            color: var(--text);
-        }
-
-        .subtitle {
-            font-size: 14px;
-            color: var(--muted);
-            margin-bottom: 32px;
-        }
-
-        .form-label {
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--muted);
-            margin-bottom: 6px;
-            letter-spacing: 0.04em;
-        }
-
-        .form-control {
-            background: var(--input-bg);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            color: var(--text);
-            padding: 11px 14px;
-            font-size: 14px;
-            font-family: 'DM Sans', sans-serif;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-
-        .form-control:focus {
-            background: var(--input-bg);
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(79,142,247,0.15);
-            color: var(--text);
-            outline: none;
-        }
-
-        .form-control::placeholder { color: #3a3f52; }
-
-        .btn-login {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
-            border: none;
-            border-radius: 10px;
+        .info-side {
+            background-color: var(--brand-primary);
+            width: 40%;
+            padding: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
             color: #fff;
-            font-family: 'Syne', sans-serif;
-            font-weight: 600;
-            font-size: 15px;
-            letter-spacing: 0.04em;
-            cursor: pointer;
-            transition: opacity 0.2s, transform 0.15s;
-            margin-top: 8px;
+            position: relative;
         }
 
-        .btn-login:hover  { opacity: 0.9; transform: translateY(-1px); }
-        .btn-login:active { transform: translateY(0); }
+        .portal-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--brand-accent);
+        }
 
-        .divider {
+        .info-side h1 {
+            font-weight: 700;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .badge-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .badge-item {
             display: flex;
             align-items: center;
             gap: 12px;
-            margin: 24px 0;
-            color: var(--muted);
-            font-size: 12px;
-        }
-        .divider::before,
-        .divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: var(--border);
-        }
-
-        .register-link {
-            text-align: center;
-            font-size: 14px;
-            color: var(--muted);
-        }
-
-        .register-link a {
-            color: var(--accent);
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .register-link a:hover { text-decoration: underline; }
-
-        .alert-error {
-            background: rgba(242,87,87,0.1);
-            border: 1px solid rgba(242,87,87,0.3);
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 15px;
             border-radius: 10px;
-            padding: 10px 14px;
-            font-size: 13px;
-            color: var(--danger);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .form-side {
+            flex: 1;
+            padding: 60px;
+            background: var(--bg-surface);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .input-wrapper {
+            position: relative;
             margin-bottom: 20px;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 14px 14px 52px;
+            background: var(--input-bg);
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: var(--brand-primary);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .divider {
+            margin: 30px 0;
             display: flex;
             align-items: center;
-            gap: 8px;
+            color: #94a3b8;
+            font-size: 0.8rem;
+            text-transform: uppercase;
         }
 
-        .mb-3 { margin-bottom: 18px; }
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .divider:not(:empty)::before { margin-right: .75em; }
+        .divider:not(:empty)::after { margin-left: .75em; }
+
+        @media (max-width: 900px) {
+            .login-card { flex-direction: column; height: auto; width: 450px; }
+            .info-side { width: 100%; padding: 40px; }
+            .badge-list { display: none; }
+        }
     </style>
 </head>
 <body>
-<div class="orb2"></div>
 
-<div class="card-wrap">
-    <div class="card">
+<div class="login-card">
+    <div class="info-side">
+        <div class="portal-icon"><i class="bi bi-layers-half"></i></div>
+        <h1>Academic <br>Management</h1>
+        <p>A unified portal for educational administration and student records.</p>
+        
+        <div class="badge-list">
+            <div class="badge-item"><i class="bi bi-shield-check"></i> Secure Authentication</div>
+            <div class="badge-item"><i class="bi bi-lightning-charge"></i> Real-time Dashboard</div>
+        </div>
+    </div>
 
-        <div class="brand">
-            <div class="brand-dot"></div>
-            Student System
+    <div class="form-side">
+        <div class="header-area">
+            <h2 class="mb-2">Welcome back</h2>
+            <p class="text-muted">Enter your credentials to access your account.</p>
         </div>
 
-        <h1>Welcome back</h1>
-        <p class="subtitle">Sign in to manage student records</p>
-
-        <?php if ($error): ?>
-            <div class="alert-error">
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <circle cx="12" cy="12" r="10" stroke-width="2"/>
-                    <path d="M12 8v4m0 4h.01" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                <?php echo htmlspecialchars($error); ?>
+        <?php if (!empty($error)): ?>
+            <div class="alert alert-danger border-0 py-2 mb-4" style="background:#fef2f2; color:#b91c1c; border-radius:10px; font-size:0.85rem;">
+                <i class="bi bi-exclamation-circle-fill me-2"></i> <?= htmlspecialchars($error) ?>
             </div>
         <?php endif; ?>
 
-        <form action="login.php" method="POST">
-
-            <div class="mb-3">
-                <label class="form-label">Email Address</label>
-                <input
-                    type="email"
-                    name="email"
-                    class="form-control"
-                    placeholder="you@example.com"
-                    value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>"
-                    required
-                >
+        <form method="POST" action="login.php">
+            <div class="input-wrapper">
+                <i class="bi bi-person-circle"></i>
+                <input type="email" name="email" class="form-input" 
+                       placeholder="Email Address" 
+                       value="<?= isset($_POST['email']) ? htmlspecialchars($_POST['email']) : '' ?>" required>
             </div>
 
-            <div class="mb-3">
-                <label class="form-label">Password</label>
-                <input
-                    type="password"
-                    name="password"
-                    class="form-control"
-                    placeholder="••••••••"
-                    required
-                >
+            <div class="input-wrapper">
+                <i class="bi bi-key"></i>
+                <input type="password" name="password" class="form-input" 
+                       placeholder="Password" required>
             </div>
 
-            <button type="submit" name="login" class="btn-login">Sign In</button>
-
+            <button type="submit" name="login" class="btn-submit">Sign In</button>
         </form>
 
-        <div class="divider">or</div>
+        <div class="divider">Development Access</div>
 
-        <div class="register-link">
-            Don't have an account? <a href="register.php">Create one</a>
+        <div class="text-center mt-3">
+            <small class="text-muted">Don't have an account? <a href="register.php" class="text-decoration-none fw-bold" style="color:var(--brand-accent)">Register</a></small>
         </div>
-
     </div>
 </div>
 
