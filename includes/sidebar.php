@@ -63,6 +63,11 @@ $current_page = basename($_SERVER['PHP_SELF']);
            class="nav-link <?php echo ($current_page == 'admin_panel.php') ? 'active' : ''; ?>">
             <i class="bi bi-shield-lock"></i> User Management
         </a>
+        
+        <a href="../institute/index.php"
+           class="nav-link <?php echo ($current_page == 'index.php' && strpos($_SERVER['PHP_SELF'], '/institute/') !== false) ? 'active' : ''; ?>">
+            <i class="bi bi-building"></i> Institute Profile
+        </a>
     <?php endif; ?>
 
 </nav>

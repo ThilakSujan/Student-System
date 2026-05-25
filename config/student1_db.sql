@@ -46,3 +46,17 @@ CREATE TABLE IF NOT EXISTS marks (
     FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE,
     UNIQUE KEY unique_student_subject (student_id, subject_id)
 );
+
+-- Institute profile (single-record table to hold institute/school details)
+CREATE TABLE IF NOT EXISTS institute_profile (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    institute_name VARCHAR(255),
+    address TEXT,
+    phone VARCHAR(50),
+    email VARCHAR(100),
+    principal_name VARCHAR(100),
+    logo VARCHAR(255),
+    other_details TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
