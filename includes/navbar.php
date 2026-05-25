@@ -21,14 +21,17 @@
             </span>
         <?php endif; ?>
 
-        <span class="text-white-50 small">
-            <i class="bi bi-person-circle"></i>
-            <?php echo isset($_SESSION['username']) ? htmlspecialchars($_SESSION['username']) : ''; ?>
-        </span>
-
-        <a href="/student_system/auth/logout.php" class="btn btn-outline-danger btn-sm">
-            <i class="bi bi-box-arrow-right"></i> Logout
-        </a>
+        <div class="dropdown">
+            <button class="btn btn-dark dropdown-toggle text-white-50 small d-flex align-items-center gap-2" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-person-circle"></i>
+                <?php echo isset($_SESSION['username']) ? htmlspecialchars($_SESSION['username']) : ''; ?>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
+                <li><a class="dropdown-item" href="/student_system/profile/view.php"><i class="bi bi-person me-2"></i> My Profile</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="/student_system/auth/logout.php"><i class="bi bi-box-arrow-right me-2"></i> Logout</a></li>
+            </ul>
+        </div>
 
     </div>
 
