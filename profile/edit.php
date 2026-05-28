@@ -7,6 +7,13 @@ $currentPage = 'profile';
 require '../includes/header.php';
 require '../includes/sidebar.php';
 include '../config/db_pdo.php';
+include '../config/db.php';
+
+// For students, redirect to view page (read-only)
+if ($_SESSION['role'] === 'student') {
+    header('Location: view.php');
+    exit;
+}
 
 // Ensure user_profiles table exists
 $pdo->exec("CREATE TABLE IF NOT EXISTS user_profiles (
