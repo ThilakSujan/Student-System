@@ -9,23 +9,34 @@ $user_role = $_SESSION['role'];
 
 // Build query based on role
 if ($user_role === 'student') {
-    $current_email = $_SESSION['email'];
-    $student_result = $mysqli->query("SELECT id FROM students WHERE email = '$current_email'");
-    if ($student_result->num_rows === 0) {
-        $marks_query = "SELECT m.*, s.student_name, s.email, sub.subject_code, sub.subject_name
-                        FROM marks m
-                        JOIN students s ON m.student_id = s.id
-                        JOIN subjects sub ON m.subject_id = sub.id
-                        WHERE 1=0";
+    $student_id = null;
+    
+    // Check if student_id is set in session (new student login system)
+    if (isset($_SESSION['student_id'])) {
+        $student_id = $_SESSION['student_id'];
     } else {
-        $student     = $student_result->fetch_assoc();
-        $student_id  = $student['id'];
+        // Fall back to email-based lookup (legacy)
+        $current_email = $_SESSION['email'];
+        $student_result = $mysqli->query("SELECT id FROM students WHERE email = '$current_email'");
+        if ($student_result->num_rows > 0) {
+            $student = $student_result->fetch_assoc();
+            $student_id = $student['id'];
+        }
+    }
+    
+    if ($student_id) {
         $marks_query = "SELECT m.*, s.student_name, s.email, sub.subject_code, sub.subject_name
                         FROM marks m
                         JOIN students s ON m.student_id = s.id
                         JOIN subjects sub ON m.subject_id = sub.id
                         WHERE m.student_id = $student_id
                         ORDER BY sub.subject_code ASC";
+    } else {
+        $marks_query = "SELECT m.*, s.student_name, s.email, sub.subject_code, sub.subject_name
+                        FROM marks m
+                        JOIN students s ON m.student_id = s.id
+                        JOIN subjects sub ON m.subject_id = sub.id
+                        WHERE 1=0";
     }
 } else {
     $marks_query = "SELECT m.*, s.student_name, s.email, sub.subject_code, sub.subject_name

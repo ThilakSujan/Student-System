@@ -53,10 +53,22 @@ $recent_res = $mysqli->query("SELECT * FROM students ORDER BY id DESC LIMIT 5");
 // ── Student own data ─────────────────────────────────────
 $my_marks = []; $my_total = 0; $my_pct = 0; $my_grade = '';
 if ($user_role === 'student') {
-    $email = $mysqli->real_escape_string($_SESSION['email'] ?? '');
-    $sres  = $mysqli->query("SELECT id FROM students WHERE email='$email' LIMIT 1");
-    if ($sres && $sres->num_rows > 0) {
-        $sid   = $sres->fetch_assoc()['id'];
+    // For student login, use the student_id from session or email
+    $sid = null;
+    
+    if (isset($_SESSION['student_id'])) {
+        // Student logged in via student login (new system)
+        $sid = $_SESSION['student_id'];
+    } else {
+        // Student logged in via old system (if any)
+        $email = $mysqli->real_escape_string($_SESSION['email'] ?? '');
+        $sres  = $mysqli->query("SELECT id FROM students WHERE email='$email' LIMIT 1");
+        if ($sres && $sres->num_rows > 0) {
+            $sid = $sres->fetch_assoc()['id'];
+        }
+    }
+    
+    if ($sid) {
         $mres  = $mysqli->query(
             "SELECT sub.subject_name, m.marks_obtained
              FROM marks m JOIN subjects sub ON sub.id=m.subject_id

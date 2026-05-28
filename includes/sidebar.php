@@ -18,10 +18,10 @@ $current_page = basename($_SERVER['PHP_SELF']);
         <i class="bi bi-speedometer2"></i> Dashboard
     </a>
 
-    <!-- Student Panel -->
-    <div class="nav-section">Student Panel</div>
-
+    <!-- Student Panel (Only for Admin/Staff, not for Students) -->
     <?php if (isset($_SESSION['role']) && in_array($_SESSION['role'], ['admin', 'staff'], true)): ?>
+        <div class="nav-section">Student Panel</div>
+
         <a href="../students/index.php"
            class="nav-link <?php echo ($current_page == 'index.php' && strpos($_SERVER['PHP_SELF'], '/students/') !== false) ? 'active' : ''; ?>">
             <i class="bi bi-person-plus"></i> Add Student
@@ -43,10 +43,23 @@ $current_page = basename($_SERVER['PHP_SELF']);
         </a>
     <?php endif; ?>
 
+    <!-- Marks - Available to Admin, Staff, and Students -->
     <?php if (isset($_SESSION['role']) && in_array($_SESSION['role'], ['admin', 'staff', 'student'], true)): ?>
+        <div class="nav-section">Academic</div>
+        
         <a href="../marks/index.php"
            class="nav-link <?php echo ($current_page == 'index.php' && strpos($_SERVER['PHP_SELF'], '/marks/') !== false) ? 'active' : ''; ?>">
             <i class="bi bi-graph-up"></i> Marks
+        </a>
+    <?php endif; ?>
+
+    <!-- Profile - Available to all logged-in users -->
+    <?php if (isset($_SESSION['user_id'])): ?>
+        <div class="nav-section">Account</div>
+        
+        <a href="../profile/view.php"
+           class="nav-link <?php echo ($current_page == 'view.php' && strpos($_SERVER['PHP_SELF'], '/profile/') !== false) ? 'active' : ''; ?>">
+            <i class="bi bi-person"></i> My Profile
         </a>
     <?php endif; ?>
 

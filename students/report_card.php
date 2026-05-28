@@ -8,8 +8,17 @@ if (!isset($_GET['student_id']) || !is_numeric($_GET['student_id'])) {
     header("Location: students.php"); exit();
 }
 
-$sid       = (int)$_GET['student_id'];
-$student   = $mysqli->query("SELECT * FROM students WHERE id=$sid LIMIT 1")->fetch_assoc();
+$sid = (int)$_GET['student_id'];
+
+// Restrict student access - students can only view their own report card
+if ($_SESSION['role'] === 'student') {
+    $student_id = isset($_SESSION['student_id']) ? $_SESSION['student_id'] : null;
+    if (!$student_id || $student_id !== $sid) {
+        header("Location: ../dashboard/dashboard.php"); exit();
+    }
+}
+
+$student = $mysqli->query("SELECT * FROM students WHERE id=$sid LIMIT 1")->fetch_assoc();
 if (!$student) { header("Location: students.php"); exit(); }
 
 $institute = $mysqli->query("SELECT * FROM institute_profile LIMIT 1")->fetch_assoc() ?? [];

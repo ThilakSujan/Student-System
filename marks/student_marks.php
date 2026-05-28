@@ -14,14 +14,22 @@ if ($student_id <= 0) {
 
 // If current user is student, ensure they can only view their own marks
 if ($user_role === 'student') {
-    $current_email = current_user_email();
-    $res = $mysqli->query("SELECT id FROM students WHERE email = '" . $mysqli->real_escape_string($current_email) . "' LIMIT 1");
-    if ($res->num_rows === 0) {
-        header('Location: index.php');
-        exit();
+    $current_student_id = null;
+    
+    // Check for new student login system
+    if (isset($_SESSION['student_id'])) {
+        $current_student_id = $_SESSION['student_id'];
+    } else {
+        // Fall back to email-based lookup for legacy system
+        $current_email = current_user_email();
+        $res = $mysqli->query("SELECT id FROM students WHERE email = '" . $mysqli->real_escape_string($current_email) . "' LIMIT 1");
+        if ($res->num_rows > 0) {
+            $row = $res->fetch_assoc();
+            $current_student_id = (int)$row['id'];
+        }
     }
-    $row = $res->fetch_assoc();
-    if ((int)$row['id'] !== $student_id) {
+    
+    if (!$current_student_id || $current_student_id !== $student_id) {
         header('Location: index.php');
         exit();
     }
