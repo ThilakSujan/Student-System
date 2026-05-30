@@ -10,22 +10,6 @@ include '../config/db.php';
 $success = "";
 $error   = "";
 
-// Handle bulk status update
-if (isset($_POST['bulk_status_update'])) {
-    $ids    = $_POST['student_ids'] ?? [];
-    $status = $_POST['new_status'] ?? '';
-
-    if (!empty($ids) && in_array($status, ['Active', 'Inactive'])) {
-        $placeholders = implode(',', array_fill(0, count($ids), '?'));
-        $query = "UPDATE students SET status = '$status' WHERE id IN ($placeholders)";
-        if (mysqli_query($conn, sprintf($query, ...$ids))) {
-            $success = "Status updated for " . count($ids) . " student(s).";
-        } else {
-            $error = "Failed to update status.";
-        }
-    }
-}
-
 // Handle individual delete
 if (isset($_GET['delete'])) {
     $id    = (int) $_GET['delete'];
@@ -74,14 +58,6 @@ $total_students = mysqli_num_rows($result);
     <div class="card shadow-sm">
         <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
             <strong><i class="bi bi-people-fill"></i> Students List (<?= $total_students ?>)</strong>
-            <div class="btn-group btn-group-sm" role="group">
-                <button type="button" class="btn btn-outline-light"
-                        onclick="filterByStatus('All')">All</button>
-                <button type="button" class="btn btn-outline-light"
-                        onclick="filterByStatus('Active')">Active</button>
-                <button type="button" class="btn btn-outline-light"
-                        onclick="filterByStatus('Inactive')">Inactive</button>
-            </div>
         </div>
 
         <div class="card-body p-0">
@@ -104,7 +80,6 @@ $total_students = mysqli_num_rows($result);
                                 <th>Email</th>
                                 <th>Phone</th>
                                 <th>Department</th>
-                                <th>Status</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -121,21 +96,15 @@ $total_students = mysqli_num_rows($result);
                                 <td><?= htmlspecialchars($row['phone']) ?></td>
                                 <td><?= htmlspecialchars($row['department']) ?></td>
                                 <td>
-                                    <?= $row['status'] == 'Active'
-                                        ? "<span class='badge bg-success'><i class='bi bi-check-circle'></i> Active</span>"
-                                        : "<span class='badge bg-danger'><i class='bi bi-x-circle'></i> Inactive</span>" ?>
-                                </td>
-                                <td>
                                     <!-- Edit -->
                                     <a href="edit.php?id=<?= $row['id'] ?>"
                                        class="btn btn-warning btn-sm" title="Edit">
                                         <i class="bi bi-pencil"></i>
                                     </a>
 
-                                    <!-- Report Card — opens in new tab -->
+                                    <!-- Report Card — opens in same page -->
                                     <a href="report_card.php?student_id=<?= $row['id'] ?>"
-                                       class="btn btn-info btn-sm" title="View Report Card"
-                                       >
+                                       class="btn btn-info btn-sm" title="View Report Card">
                                         <i class="bi bi-file-earmark-text"></i>
                                     </a>
 
@@ -153,31 +122,7 @@ $total_students = mysqli_num_rows($result);
                     </table>
                 </div>
 
-                <!-- Bulk Actions -->
-                <div class="card-footer bg-light">
-                    <form method="POST" class="row g-2 align-items-center">
-                        <div class="col-auto">
-                            <select class="form-select form-select-sm" id="bulkStatus">
-                                <option value="">-- Select Status --</option>
-                                <option value="Active">Mark as Active</option>
-                                <option value="Inactive">Mark as Inactive</option>
-                            </select>
-                        </div>
-                        <div class="col-auto">
-                            <button type="submit" name="bulk_status_update"
-                                    class="btn btn-primary btn-sm">
-                                <i class="bi bi-arrow-repeat"></i> Apply
-                            </button>
-                        </div>
-                        <div class="col-auto">
-                            <small class="text-muted">
-                                Select students above and choose an action
-                            </small>
-                        </div>
-                        <input type="hidden" id="studentIds" name="student_ids" value="">
-                        <input type="hidden" id="newStatus"   name="new_status"  value="">
-                    </form>
-                </div>
+
             <?php endif; ?>
         </div>
     </div>
@@ -193,17 +138,11 @@ $(document).ready(function () {
         lengthMenu: [[5, 10, 25, 50], [5, 10, 25, 50]],
         columnDefs: [
             { orderable: false, targets: 0 },
-            { orderable: false, targets: 7 }
+            { orderable: false, targets: 6 }
         ],
         order: [[1, 'asc']]
     });
 });
-
-// Filter by status
-function filterByStatus(status) {
-    let table = $('#studentsTable').DataTable();
-    table.column(6).search(status === 'All' ? '' : status).draw();
-}
 
 // Select all checkboxes
 $('#selectAll').on('change', function () {
@@ -218,22 +157,5 @@ $(document).on('change', '.student-checkbox', function () {
     }
 });
 
-// Bulk status handler
-$('#bulkStatus').on('change', function () {
-    let status = $(this).val();
-    if (!status) return;
 
-    let ids = $('.student-checkbox:checked').map(function () {
-        return $(this).val();
-    }).get();
-
-    if (ids.length === 0) {
-        alert('Please select at least one student.');
-        $(this).val('');
-        return;
-    }
-
-    $('#studentIds').val(JSON.stringify(ids));
-    $('#newStatus').val(status);
-});
 </script>

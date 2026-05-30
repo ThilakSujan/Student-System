@@ -60,3 +60,15 @@ CREATE TABLE IF NOT EXISTS institute_profile (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS attendance (
+    id          INT PRIMARY KEY AUTO_INCREMENT,
+    student_id  INT NOT NULL,
+    date        DATE NOT NULL,
+    status      ENUM('Present','Absent') NOT NULL DEFAULT 'Present',
+    marked_by   INT DEFAULT NULL,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_student_date (student_id, date),
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
+);
