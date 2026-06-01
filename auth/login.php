@@ -261,10 +261,229 @@ if (isset($_POST['login']) && $login_type === 'student') {
             margin-right: 8px;
         }
 
-        @media (max-width: 900px) {
-            .login-card { flex-direction: column; height: auto; width: 450px; }
-            .info-side { width: 100%; padding: 40px; }
-            .badge-list { display: none; }
+        /* Tablet and smaller screens */
+        @media (max-width: 1024px) {
+            .login-card {
+                width: 95%;
+                max-width: 500px;
+                height: auto;
+                flex-direction: column;
+            }
+
+            .info-side {
+                width: 100%;
+                padding: 40px 30px;
+            }
+
+            .form-side {
+                padding: 40px 30px;
+            }
+
+            .badge-list {
+                display: none;
+            }
+
+            .info-side h1 {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Mobile screens */
+        @media (max-width: 768px) {
+            body {
+                background-size: 16px 16px;
+            }
+
+            .login-card {
+                width: 90%;
+                border-radius: 15px;
+            }
+
+            .info-side {
+                padding: 30px 20px;
+            }
+
+            .form-side {
+                padding: 30px 20px;
+            }
+
+            .portal-icon {
+                font-size: 2rem;
+                margin-bottom: 1rem;
+            }
+
+            .info-side h1 {
+                font-size: 1.3rem;
+                margin-bottom: 0.5rem;
+            }
+
+            .info-side p {
+                font-size: 0.9rem;
+            }
+
+            .header-area h2 {
+                font-size: 1.5rem;
+            }
+
+            .nav-tabs .nav-link {
+                margin-right: 15px;
+                padding: 10px 0;
+                font-size: 0.9rem;
+            }
+
+            .nav-tabs .nav-link i {
+                margin-right: 4px;
+            }
+
+            .input-wrapper {
+                margin-bottom: 16px;
+            }
+
+            .form-input {
+                padding: 12px 12px 12px 45px;
+                font-size: 0.95rem;
+            }
+
+            .btn-submit {
+                padding: 12px;
+                font-size: 0.95rem;
+            }
+        }
+
+        /* Small mobile screens */
+        @media (max-width: 576px) {
+            .login-card {
+                width: 95%;
+                border-radius: 12px;
+                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            }
+
+            .info-side {
+                padding: 25px 18px;
+            }
+
+            .form-side {
+                padding: 25px 18px;
+            }
+
+            .portal-icon {
+                font-size: 1.8rem;
+            }
+
+            .info-side h1 {
+                font-size: 1.2rem;
+            }
+
+            .info-side p {
+                font-size: 0.85rem;
+                line-height: 1.4;
+            }
+
+            .header-area h2 {
+                font-size: 1.3rem;
+                margin-bottom: 0.75rem;
+            }
+
+            .header-area p {
+                font-size: 0.85rem;
+            }
+
+            .nav-tabs {
+                flex-wrap: wrap;
+            }
+
+            .nav-tabs .nav-link {
+                margin-right: 10px;
+                padding: 8px 0;
+                font-size: 0.85rem;
+            }
+
+            .nav-tabs .nav-link i {
+                font-size: 0.9rem;
+            }
+
+            .input-wrapper {
+                margin-bottom: 14px;
+            }
+
+            .input-wrapper i {
+                left: 14px;
+                font-size: 0.95rem;
+            }
+
+            .form-input {
+                padding: 10px 10px 10px 40px;
+                font-size: 0.9rem;
+                border-radius: 8px;
+            }
+
+            .btn-submit {
+                padding: 10px;
+                font-size: 0.9rem;
+                border-radius: 8px;
+                margin-top: 12px;
+            }
+
+            .alert {
+                font-size: 0.8rem;
+                padding: 8px 12px;
+            }
+
+            .divider {
+                margin: 20px 0;
+                font-size: 0.75rem;
+            }
+
+            .text-muted {
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Extra small mobile screens */
+        @media (max-width: 400px) {
+            .login-card {
+                border-radius: 10px;
+            }
+
+            .info-side {
+                padding: 20px 15px;
+            }
+
+            .form-side {
+                padding: 20px 15px;
+            }
+
+            .portal-icon {
+                font-size: 1.5rem;
+                margin-bottom: 0.8rem;
+            }
+
+            .info-side h1 {
+                font-size: 1rem;
+            }
+
+            .info-side p {
+                font-size: 0.8rem;
+            }
+
+            .header-area h2 {
+                font-size: 1.1rem;
+            }
+
+            .nav-tabs .nav-link {
+                font-size: 0.8rem;
+                margin-right: 8px;
+            }
+
+            .form-input {
+                padding: 9px 9px 9px 36px;
+                font-size: 0.85rem;
+            }
+
+            .btn-submit {
+                padding: 9px;
+                font-size: 0.85rem;
+            }
         }
     </style>
 </head>

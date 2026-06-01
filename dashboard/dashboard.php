@@ -95,18 +95,20 @@ require '../includes/sidebar.php';
      STUDENT DASHBOARD
 ══════════════════════════════════════════ -->
 
-<div class="mb-4">
-    <h4 class="fw-bold mb-0">Welcome, <?= htmlspecialchars($_SESSION['username']) ?> 👋</h4>
-    <p class="text-muted" style="font-size:13px">Here's your academic summary</p>
+<div class="content-header mb-4">
+    <div>
+        <h2 class="mb-1"><i class="bi bi-speedometer2"></i> Dashboard</h2>
+        <p class="text-muted mb-0" style="font-size:13px">Welcome, <?= htmlspecialchars($_SESSION['username']) ?> 👋</p>
+    </div>
 </div>
 
 <!-- Student stat cards -->
 <div class="row g-3 mb-4">
     <div class="col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm h-100">
+        <div class="card h-100">
             <div class="card-body d-flex align-items-center gap-3">
-                <div style="width:50px;height:50px;border-radius:12px;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">
-                    <i class="bi bi-journal-check text-primary"></i>
+                <div style="width:50px;height:50px;border-radius:12px;background: rgba(0, 191, 165, 0.1);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">
+                    <i class="bi bi-journal-check" style="color: var(--primary-color);"></i>
                 </div>
                 <div>
                     <div class="text-muted" style="font-size:12px">Total Marks</div>
@@ -116,10 +118,10 @@ require '../includes/sidebar.php';
         </div>
     </div>
     <div class="col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm h-100">
+        <div class="card h-100">
             <div class="card-body d-flex align-items-center gap-3">
-                <div style="width:50px;height:50px;border-radius:12px;background:#d1fae5;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">
-                    <i class="bi bi-percent" style="color:#059669"></i>
+                <div style="width:50px;height:50px;border-radius:12px;background: rgba(0, 191, 165, 0.1);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">
+                    <i class="bi bi-percent" style="color: var(--primary-color);"></i>
                 </div>
                 <div>
                     <div class="text-muted" style="font-size:12px">Percentage</div>
@@ -129,10 +131,10 @@ require '../includes/sidebar.php';
         </div>
     </div>
     <div class="col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm h-100">
+        <div class="card h-100">
             <div class="card-body d-flex align-items-center gap-3">
-                <div style="width:50px;height:50px;border-radius:12px;background:#fef3c7;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">
-                    <i class="bi bi-award-fill" style="color:#d97706"></i>
+                <div style="width:50px;height:50px;border-radius:12px;background: rgba(25, 118, 210, 0.1);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">
+                    <i class="bi bi-award-fill" style="color: var(--secondary-color);"></i>
                 </div>
                 <div>
                     <div class="text-muted" style="font-size:12px">Grade</div>
@@ -142,10 +144,10 @@ require '../includes/sidebar.php';
         </div>
     </div>
     <div class="col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm h-100">
+        <div class="card h-100">
             <div class="card-body d-flex align-items-center gap-3">
-                <div style="width:50px;height:50px;border-radius:12px;background:#ede9fe;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">
-                    <i class="bi bi-book-fill" style="color:#7c3aed"></i>
+                <div style="width:50px;height:50px;border-radius:12px;background: rgba(25, 118, 210, 0.1);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">
+                    <i class="bi bi-book-fill" style="color: var(--secondary-color);"></i>
                 </div>
                 <div>
                     <div class="text-muted" style="font-size:12px">Subjects</div>
@@ -157,9 +159,9 @@ require '../includes/sidebar.php';
 </div>
 
 <!-- Subject breakdown -->
-<div class="card border-0 shadow-sm">
-    <div class="card-header bg-primary text-white fw-semibold">
-        <i class="bi bi-bar-chart-fill me-1"></i> My Subject Marks
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-bar-chart-fill me-1"></i> My Subject Marks</h5>
     </div>
     <div class="card-body">
         <?php if (empty($my_marks)): ?>
@@ -201,18 +203,20 @@ require '../includes/sidebar.php';
      ADMIN / STAFF DASHBOARD
 ══════════════════════════════════════════ -->
 
-<div class="mb-4">
-    <h4 class="fw-bold mb-0">Welcome, <?= htmlspecialchars($_SESSION['username']) ?> 👋</h4>
-    <p class="text-muted" style="font-size:13px">Here's what's happening in the system today</p>
+<div class="content-header mb-4">
+    <div>
+        <h2 class="mb-1"><i class="bi bi-speedometer2"></i> Dashboard</h2>
+        <p class="text-muted mb-0" style="font-size:13px">Welcome, <?= htmlspecialchars($_SESSION['username']) ?> 👋</p>
+    </div>
 </div>
 
 <!-- Stat cards row 1 -->
 <div class="row g-3 mb-3">
     <div class="col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm h-100">
+        <div class="card h-100">
             <div class="card-body d-flex align-items-center gap-3">
-                <div style="width:50px;height:50px;border-radius:12px;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">
-                    <i class="bi bi-mortarboard-fill text-primary"></i>
+                <div style="width:50px;height:50px;border-radius:12px;background: rgba(0, 191, 165, 0.1);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">
+                    <i class="bi bi-mortarboard-fill" style="color: var(--primary-color);"></i>
                 </div>
                 <div>
                     <div class="text-muted" style="font-size:12px">Total Students</div>
@@ -222,40 +226,40 @@ require '../includes/sidebar.php';
         </div>
     </div>
     <div class="col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm h-100">
+        <div class="card h-100">
             <div class="card-body d-flex align-items-center gap-3">
-                <div style="width:50px;height:50px;border-radius:12px;background:#d1fae5;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">
-                    <i class="bi bi-person-check-fill" style="color:#059669"></i>
+                <div style="width:50px;height:50px;border-radius:12px;background: rgba(0, 191, 165, 0.1);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">
+                    <i class="bi bi-person-check-fill" style="color: var(--primary-color);"></i>
                 </div>
                 <div>
                     <div class="text-muted" style="font-size:12px">Active Students</div>
-                    <div class="fw-bold text-success" style="font-size:26px;line-height:1"><?= $active_students ?></div>
+                    <div class="fw-bold" style="font-size:26px;line-height:1; color: var(--primary-color);"><?= $active_students ?></div>
                 </div>
             </div>
         </div>
     </div>
     <div class="col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm h-100">
+        <div class="card h-100">
             <div class="card-body d-flex align-items-center gap-3">
-                <div style="width:50px;height:50px;border-radius:12px;background:#fee2e2;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">
-                    <i class="bi bi-person-x-fill text-danger"></i>
+                <div style="width:50px;height:50px;border-radius:12px;background: rgba(211, 47, 47, 0.1);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">
+                    <i class="bi bi-person-x-fill" style="color: #D32F2F;"></i>
                 </div>
                 <div>
                     <div class="text-muted" style="font-size:12px">Inactive Students</div>
-                    <div class="fw-bold text-danger" style="font-size:26px;line-height:1"><?= $inactive_students ?></div>
+                    <div class="fw-bold" style="font-size:26px;line-height:1; color: #D32F2F;"><?= $inactive_students ?></div>
                 </div>
             </div>
         </div>
     </div>
     <div class="col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm h-100">
+        <div class="card h-100">
             <div class="card-body d-flex align-items-center gap-3">
-                <div style="width:50px;height:50px;border-radius:12px;background:#fef3c7;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">
-                    <i class="bi bi-journal-check" style="color:#d97706"></i>
+                <div style="width:50px;height:50px;border-radius:12px;background: rgba(25, 118, 210, 0.1);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">
+                    <i class="bi bi-journal-check" style="color: var(--secondary-color);"></i>
                 </div>
                 <div>
                     <div class="text-muted" style="font-size:12px">Marks Entered</div>
-                    <div class="fw-bold" style="font-size:26px;line-height:1;color:#d97706"><?= $marks_entered ?></div>
+                    <div class="fw-bold" style="font-size:26px;line-height:1; color: var(--secondary-color);"><?= $marks_entered ?></div>
                 </div>
             </div>
         </div>
@@ -265,41 +269,41 @@ require '../includes/sidebar.php';
 <!-- Stat cards row 2 -->
 <div class="row g-3 mb-4">
     <div class="col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm h-100">
+        <div class="card h-100">
             <div class="card-body d-flex align-items-center gap-3">
-                <div style="width:50px;height:50px;border-radius:12px;background:#ede9fe;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">
-                    <i class="bi bi-book-fill" style="color:#7c3aed"></i>
+                <div style="width:50px;height:50px;border-radius:12px;background: rgba(25, 118, 210, 0.1);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">
+                    <i class="bi bi-book-fill" style="color: var(--secondary-color);"></i>
                 </div>
                 <div>
                     <div class="text-muted" style="font-size:12px">Active Subjects</div>
-                    <div class="fw-bold" style="font-size:26px;line-height:1;color:#7c3aed"><?= $total_subjects ?></div>
+                    <div class="fw-bold" style="font-size:26px;line-height:1; color: var(--secondary-color);"><?= $total_subjects ?></div>
                 </div>
             </div>
         </div>
     </div>
     <?php if ($user_role === 'admin'): ?>
     <div class="col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm h-100">
+        <div class="card h-100">
             <div class="card-body d-flex align-items-center gap-3">
-                <div style="width:50px;height:50px;border-radius:12px;background:#e0f2fe;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">
-                    <i class="bi bi-people-fill" style="color:#0284c7"></i>
+                <div style="width:50px;height:50px;border-radius:12px;background: rgba(0, 191, 165, 0.1);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">
+                    <i class="bi bi-people-fill" style="color: var(--primary-light);"></i>
                 </div>
                 <div>
                     <div class="text-muted" style="font-size:12px">Total Staff</div>
-                    <div class="fw-bold" style="font-size:26px;line-height:1;color:#0284c7"><?= $total_staff ?></div>
+                    <div class="fw-bold" style="font-size:26px;line-height:1; color: var(--primary-light);"><?= $total_staff ?></div>
                 </div>
             </div>
         </div>
     </div>
     <div class="col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm h-100">
+        <div class="card h-100">
             <div class="card-body d-flex align-items-center gap-3">
-                <div style="width:50px;height:50px;border-radius:12px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">
-                    <i class="bi bi-shield-lock-fill" style="color:#16a34a"></i>
+                <div style="width:50px;height:50px;border-radius:12px;background: rgba(0, 191, 165, 0.1);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">
+                    <i class="bi bi-shield-lock-fill" style="color: var(--primary-dark);"></i>
                 </div>
                 <div>
                     <div class="text-muted" style="font-size:12px">Total Users</div>
-                    <div class="fw-bold" style="font-size:26px;line-height:1;color:#16a34a"><?= $total_users ?></div>
+                    <div class="fw-bold" style="font-size:26px;line-height:1; color: var(--primary-dark);"><?= $total_users ?></div>
                 </div>
             </div>
         </div>
@@ -312,9 +316,9 @@ require '../includes/sidebar.php';
 
     <!-- Top 3 Rankings -->
     <div class="col-lg-4">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white border-bottom fw-semibold" style="font-size:14px">
-                <i class="bi bi-trophy-fill text-warning me-1"></i> Top 3 Students
+        <div class="card h-100">
+            <div class="card-header" style="font-size:14px">
+                <i class="bi bi-trophy-fill me-1" style="color: #F57C00;"></i> Top 3 Students
             </div>
             <div class="card-body">
                 <?php if (empty($top3)): ?>
@@ -324,8 +328,8 @@ require '../includes/sidebar.php';
                 <?php else: ?>
                     <?php
                     $medals  = ['🥇','🥈','🥉'];
-                    $pbg     = ['#fef3c7','#f1f5f9','#ffedd5'];
-                    $ptxt    = ['#92400e','#475569','#9a3412'];
+                    $pbg     = ['rgba(245, 124, 0, 0.1)', 'rgba(0, 0, 0, 0.05)', 'rgba(0, 191, 165, 0.1)'];
+                    $ptxt    = ['#F57C00', '#424242'];
                     foreach ($top3 as $i => $t):
                     ?>
                     <div class="d-flex align-items-center gap-3 p-3 rounded-3 mb-2"

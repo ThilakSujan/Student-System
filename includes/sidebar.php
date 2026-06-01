@@ -89,9 +89,4 @@ $base = '/student_system';
     <?php endif; ?>
     <?php endif; ?>
 
-    <div class="sidebar-footer">
-        <i class="bi bi-circle-fill text-success" style="font-size:8px"></i>
-        &nbsp;<?= htmlspecialchars($_SESSION['username']??'') ?>
-        <span class="badge bg-secondary ms-1" style="font-size:9px"><?= ucfirst($role) ?></span>
-    </div>
 </nav>
