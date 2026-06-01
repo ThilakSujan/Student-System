@@ -198,15 +198,15 @@
             }
 
             #wrapper {
-                margin-top: 56px;
+                margin-top: 48px;
             }
 
             #sidebar {
                 position: fixed;
                 width: 270px;
-                height: calc(100vh - 56px);
+                height: calc(100vh - 48px);
                 left: 0;
-                top: 56px;
+                top: 48px;
                 margin-left: -270px;
                 overflow-y: auto;
                 overflow-x: hidden;
@@ -291,8 +291,8 @@
             #sidebar {
                 width: 240px;
                 margin-left: -240px;
-                top: 56px;
-                height: calc(100vh - 56px);
+                top: 48px;
+                height: calc(100vh - 48px);
                 overflow-y: auto;
                 overflow-x: hidden;
                 padding-bottom: 40px;
@@ -428,8 +428,8 @@
             #sidebar {
                 width: 200px;
                 margin-left: -200px;
-                top: 56px;
-                height: calc(100vh - 56px);
+                top: 48px;
+                height: calc(100vh - 48px);
                 overflow-y: auto;
                 overflow-x: hidden;
                 padding-bottom: 40px;

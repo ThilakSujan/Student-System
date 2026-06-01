@@ -1,5 +1,5 @@
 <!-- Top Navbar -->
-<nav class="navbar navbar-expand navbar-dark bg-dark px-3 px-md-4" style="min-height:56px;">
+<nav class="navbar navbar-expand navbar-dark bg-dark px-3 px-md-4" style="min-height:48px;">
 
     <!-- Sidebar Toggle Button (Mobile) -->
     <button class="sidebar-toggle d-lg-none" id="sidebarToggle" type="button">
