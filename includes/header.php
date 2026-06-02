@@ -15,6 +15,78 @@
            RESPONSIVE LAYOUT STYLES
         ══════════════════════════════════════════════════════ */
 
+        /* ── Page entrance transition ── */
+        #main-content {
+            animation: pageFadeIn 0.4s ease both;
+        }
+
+        @keyframes pageFadeIn {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Card entrance ── */
+        .card {
+            animation: cardFadeIn 0.5s ease both;
+            transition: box-shadow .25s ease, transform .25s ease;
+        }
+        .card:hover {
+            box-shadow: 0 6px 24px rgba(0,0,0,.10) !important;
+            transform: translateY(-2px);
+        }
+
+        @keyframes cardFadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Table rows ── */
+        tbody tr {
+            animation: rowSlideIn 0.35s ease both;
+        }
+        tbody tr:nth-child(1)  { animation-delay: .03s }
+        tbody tr:nth-child(2)  { animation-delay: .06s }
+        tbody tr:nth-child(3)  { animation-delay: .09s }
+        tbody tr:nth-child(4)  { animation-delay: .12s }
+        tbody tr:nth-child(5)  { animation-delay: .15s }
+        tbody tr:nth-child(6)  { animation-delay: .18s }
+        tbody tr:nth-child(7)  { animation-delay: .21s }
+        tbody tr:nth-child(8)  { animation-delay: .24s }
+        tbody tr:nth-child(9)  { animation-delay: .27s }
+        tbody tr:nth-child(10) { animation-delay: .30s }
+
+        @keyframes rowSlideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+
+        /* ── Alerts ── */
+        .alert {
+            animation: alertDrop 0.4s ease both;
+        }
+        @keyframes alertDrop {
+            from { opacity: 0; transform: translateY(-10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Buttons ── */
+        .btn {
+            transition: transform .15s ease, box-shadow .15s ease, background .2s ease;
+        }
+        .btn:hover  { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.12); }
+        .btn:active { transform: translateY(0); }
+
+        /* ── Badges ── */
+        .badge {
+            transition: transform .15s ease;
+        }
+        .badge:hover { transform: scale(1.08); }
+
+        /* ── Page link transitions (sidebar links) ── */
+        #sidebar .nav-link {
+            transition: background .2s ease, color .2s ease, border-left .2s ease, padding-left .2s ease;
+        }
+
         * {
             box-sizing: border-box;
         }
