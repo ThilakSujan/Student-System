@@ -204,6 +204,14 @@ if (isset($_POST['update_staff'])) {
 
     </div>
 
+<?php
+// Inject toast notification
+if (!empty($success)) {
+    echo "<script>window._toastMsg=" . json_encode($success) . ";window._toastType='success';</script>";
+} elseif (!empty($error)) {
+    echo "<script>window._toastMsg=" . json_encode($error) . ";window._toastType='danger';</script>";
+}
+?>
     <?php require '../includes/footer.php'; ?>
 
 </div>

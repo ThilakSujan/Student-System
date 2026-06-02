@@ -1,11 +1,6 @@
 <?php
 require_once '../includes/auth.php';
 require_login();
-
-$page_title = "Edit Profile";
-$currentPage = 'profile';
-require '../includes/header.php';
-require '../includes/sidebar.php';
 include '../config/db_pdo.php';
 include '../config/db.php';
 
@@ -85,6 +80,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 }
+
+$page_title = "Edit Profile";
+$currentPage = 'profile';
+require '../includes/header.php';
+require '../includes/sidebar.php';
 ?>
 
 <div id="content">

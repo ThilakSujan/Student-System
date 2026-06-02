@@ -7,6 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/datatables.net@1.13.7/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.7/js/dataTables.bootstrap5.min.js"></script>
@@ -106,9 +107,9 @@
         }
 
         #sidebar {
-            width: 240px;
+            width: 255px;
             min-height: 100vh;
-            background-color: #212529;
+            background-color: #0f172a;
             flex-shrink: 0;
             position: relative;
             transition: margin-left 0.3s ease;
@@ -118,7 +119,7 @@
         }
 
         #sidebar.hidden {
-            margin-left: -240px;
+            margin-left: -255px;
         }
 
         #content {
@@ -269,16 +270,12 @@
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             }
 
-            #wrapper {
-                margin-top: 48px;
-            }
-
             #sidebar {
                 position: fixed;
                 width: 270px;
-                height: calc(100vh - 48px);
+                height: calc(100vh - 56px);
                 left: 0;
-                top: 48px;
+                top: 56px;
                 margin-left: -270px;
                 overflow-y: auto;
                 overflow-x: hidden;
@@ -363,8 +360,8 @@
             #sidebar {
                 width: 240px;
                 margin-left: -240px;
-                top: 48px;
-                height: calc(100vh - 48px);
+                top: 56px;
+                height: calc(100vh - 56px);
                 overflow-y: auto;
                 overflow-x: hidden;
                 padding-bottom: 40px;
@@ -500,8 +497,8 @@
             #sidebar {
                 width: 200px;
                 margin-left: -200px;
-                top: 48px;
-                height: calc(100vh - 48px);
+                top: 56px;
+                height: calc(100vh - 56px);
                 overflow-y: auto;
                 overflow-x: hidden;
                 padding-bottom: 40px;

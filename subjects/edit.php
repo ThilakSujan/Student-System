@@ -142,6 +142,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </div>
     </div>
+    <?php include '../includes/footer.php'; ?>
 </div>
 
-<?php include '../includes/footer.php'; ?>
+<?php
+// Inject toast notification
+if (!empty($message)) {
+    echo "<script>window._toastMsg=" . json_encode($message) . ";window._toastType=" . json_encode($alert_type) . ";</script>";
+}
+?>
+

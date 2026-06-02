@@ -56,6 +56,122 @@ include '../includes/header.php';
 include '../includes/sidebar.php';
 ?>
 
+<style>
+/* ── Attendance Toggle Button ── */
+.att-toggle-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.att-toggle {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    border-radius: 50px;
+    width: 160px;
+    height: 38px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden;
+    user-select: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+
+.att-toggle.present {
+    background: linear-gradient(135deg, #198754, #28a745);
+    border-color: #146c43;
+    box-shadow: 0 3px 12px rgba(25,135,84,0.35);
+}
+
+.att-toggle.absent {
+    background: linear-gradient(135deg, #dc3545, #c0392b);
+    border-color: #b02a37;
+    box-shadow: 0 3px 12px rgba(220,53,69,0.35);
+}
+
+.att-toggle.unmarked {
+    background: linear-gradient(135deg, #6c757d, #5a6268);
+    border-color: #545b62;
+    box-shadow: 0 3px 12px rgba(108,117,125,0.25);
+}
+
+/* Sliding knob */
+.att-toggle .knob {
+    position: absolute;
+    top: 3px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 2;
+}
+
+.att-toggle.present .knob  { left: calc(100% - 31px); }
+.att-toggle.absent .knob   { left: 3px; }
+.att-toggle.unmarked .knob { left: calc(50% - 14px); }
+
+/* Label text */
+.att-toggle .toggle-label {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: #fff;
+    text-transform: uppercase;
+    z-index: 1;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+}
+
+/* Icons inside toggle */
+.att-toggle .toggle-icon {
+    font-size: 14px;
+    margin-right: 4px;
+}
+
+/* Row highlight */
+tr.status-present { background-color: rgba(25,135,84,0.07) !important; }
+tr.status-absent  { background-color: rgba(220,53,69,0.07) !important; }
+
+/* Pulse animation on toggle */
+@keyframes togglePulse {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(0.95); }
+    70%  { transform: scale(1.04); }
+    100% { transform: scale(1); }
+}
+.att-toggle.pulse { animation: togglePulse 0.3s ease; }
+
+/* Card header gradient */
+.att-card-header {
+    background: linear-gradient(135deg, #0d6efd, #0b5ed7);
+}
+
+/* Summary badge */
+.summary-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* Table font */
+.att-table { font-size: 13.5px; }
+.att-table thead th { background: #f1f3f5; font-weight: 600; border-bottom: 2px solid #dee2e6; }
+
+/* Search box */
+#studentSearch { max-width: 240px; font-size: 13px; }
+</style>
+
 <div id="content">
 <?php include '../includes/navbar.php'; ?>
 <div id="main-content">
@@ -84,7 +200,7 @@ include '../includes/sidebar.php';
     </div>
     <?php endif; ?>
 
-    <form method="POST">
+    <form method="POST" id="attendanceForm">
 
         <!-- Date selector -->
         <div class="card border-0 shadow-sm mb-4">
@@ -106,14 +222,14 @@ include '../includes/sidebar.php';
                     </div>
                     <!-- Summary badges -->
                     <div class="col-md-5 d-flex gap-2 justify-content-end flex-wrap">
-                        <span class="badge bg-success px-3 py-2" style="font-size:13px">
-                            <i class="bi bi-check-circle me-1"></i>Present: <?= $present ?>
+                        <span class="summary-badge bg-success text-white" id="badge-present">
+                            <i class="bi bi-check-circle-fill"></i>Present: <span id="cnt-present"><?= $present ?></span>
                         </span>
-                        <span class="badge bg-danger px-3 py-2" style="font-size:13px">
-                            <i class="bi bi-x-circle me-1"></i>Absent: <?= $absent ?>
+                        <span class="summary-badge bg-danger text-white" id="badge-absent">
+                            <i class="bi bi-x-circle-fill"></i>Absent: <span id="cnt-absent"><?= $absent ?></span>
                         </span>
-                        <span class="badge bg-secondary px-3 py-2" style="font-size:13px">
-                            <i class="bi bi-dash-circle me-1"></i>Unmarked: <?= $unmarked ?>
+                        <span class="summary-badge bg-secondary text-white" id="badge-unmarked">
+                            <i class="bi bi-dash-circle-fill"></i>Unmarked: <span id="cnt-unmarked"><?= $unmarked ?></span>
                         </span>
                     </div>
                 </div>
@@ -122,70 +238,76 @@ include '../includes/sidebar.php';
 
         <!-- Students attendance table -->
         <div class="card border-0 shadow-sm">
-            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                <span class="fw-semibold"><i class="bi bi-people me-1"></i>
+            <div class="card-header att-card-header text-white d-flex justify-content-between align-items-center">
+                <span class="fw-semibold">
+                    <i class="bi bi-people me-1"></i>
                     Students — <?= date('d M Y', strtotime($selected_date)) ?>
                 </span>
-                <div class="d-flex gap-2">
+                <div class="d-flex gap-2 align-items-center">
+                    <input type="text" id="studentSearch" class="form-control form-control-sm"
+                           style="width:180px;" placeholder="🔍 Search student…" oninput="filterStudents(this.value)">
                     <button type="button" onclick="markAll('Present')"
-                            class="btn btn-success btn-sm">
+                            class="btn btn-success btn-sm text-nowrap">
                         <i class="bi bi-check-all me-1"></i>All Present
                     </button>
                     <button type="button" onclick="markAll('Absent')"
-                            class="btn btn-danger btn-sm">
+                            class="btn btn-danger btn-sm text-nowrap">
                         <i class="bi bi-x-lg me-1"></i>All Absent
                     </button>
                 </div>
             </div>
+
             <div class="card-body p-0">
                 <?php if (empty($students)): ?>
                     <div class="text-center text-muted py-5">
                         <i class="bi bi-inbox fs-2 d-block mb-2"></i>No active students found.
                     </div>
                 <?php else: ?>
-                <table class="table table-hover mb-0" style="font-size:13px">
-                    <thead class="table-light">
+                <table class="table att-table table-hover mb-0">
+                    <thead>
                         <tr>
-                            <th>#</th>
+                            <th style="width:50px">#</th>
                             <th>Student Name</th>
                             <th>Department</th>
-                            <th class="text-center">
-                                <i class="bi bi-check-circle-fill text-success me-1"></i>Present
-                            </th>
-                            <th class="text-center">
-                                <i class="bi bi-x-circle-fill text-danger me-1"></i>Absent
-                            </th>
+                            <th class="text-center">Attendance</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="studentsBody">
                     <?php foreach ($students as $i => $s):
                         $existing = $s['existing_status'];
-                        $is_present = $existing === 'Present';
-                        $is_absent  = $existing === 'Absent';
-                        // Default to Present if unmarked
-                        $default_present = is_null($existing) ? true : $is_present;
+                        // Default unmarked → Present
+                        $initial  = is_null($existing) ? 'Present' : $existing;
+                        $rowClass = $initial === 'Present' ? 'status-present' : 'status-absent';
+                        $toggleClass = strtolower($initial);
+                        if (is_null($existing)) $toggleClass = 'unmarked';
+                        $icon  = $initial === 'Present' ? 'bi-check-circle-fill' : 'bi-x-circle-fill';
+                        $label = $initial === 'Present' ? 'Present' : 'Absent';
                     ?>
-                    <tr id="row-<?= $s['id'] ?>" class="<?= $is_absent ? 'table-danger' : ($is_present ? 'table-success' : '') ?>" style="opacity:<?= is_null($existing)?'0.7':'1' ?>">
-                        <td class="text-muted"><?= $i+1 ?></td>
-                        <td><strong><?= htmlspecialchars($s['student_name']) ?></strong></td>
-                        <td><?= htmlspecialchars($s['department']) ?></td>
-                        <td class="text-center">
-                            <input type="radio"
+                    <tr id="row-<?= $s['id'] ?>" class="<?= $rowClass ?>" data-name="<?= strtolower(htmlspecialchars($s['student_name'])) ?>">
+                        <td class="text-muted align-middle"><?= $i+1 ?></td>
+                        <td class="align-middle"><strong><?= htmlspecialchars($s['student_name']) ?></strong></td>
+                        <td class="align-middle text-muted"><?= htmlspecialchars($s['department']) ?></td>
+                        <td class="text-center align-middle py-2">
+                            <!-- Hidden input carries the value on submit -->
+                            <input type="hidden"
                                    name="status[<?= $s['id'] ?>]"
-                                   value="Present"
-                                   class="form-check-input attendance-radio"
-                                   data-id="<?= $s['id'] ?>"
-                                   <?= $default_present ? 'checked' : '' ?>
-                                   style="width:20px;height:20px;cursor:pointer;accent-color:#198754">
-                        </td>
-                        <td class="text-center">
-                            <input type="radio"
-                                   name="status[<?= $s['id'] ?>]"
-                                   value="Absent"
-                                   class="form-check-input attendance-radio"
-                                   data-id="<?= $s['id'] ?>"
-                                   <?= $is_absent ? 'checked' : '' ?>
-                                   style="width:20px;height:20px;cursor:pointer;accent-color:#dc3545">
+                                   id="status-<?= $s['id'] ?>"
+                                   value="<?= htmlspecialchars($initial) ?>">
+
+                            <!-- Toggle pill -->
+                            <div class="att-toggle-wrap">
+                                <div class="att-toggle <?= $toggleClass ?>"
+                                     id="toggle-<?= $s['id'] ?>"
+                                     data-id="<?= $s['id'] ?>"
+                                     data-state="<?= $initial ?>"
+                                     onclick="toggleAttendance(this)"
+                                     title="Click to toggle">
+                                    <span class="knob"></span>
+                                    <span class="toggle-label" id="lbl-<?= $s['id'] ?>">
+                                        <i class="bi <?= $icon ?> toggle-icon"></i><?= $label ?>
+                                    </span>
+                                </div>
+                            </div>
                         </td>
                     </tr>
                     <?php endforeach; ?>
@@ -193,6 +315,7 @@ include '../includes/sidebar.php';
                 </table>
                 <?php endif; ?>
             </div>
+
             <?php if (!empty($students)): ?>
             <div class="card-footer bg-light d-flex justify-content-between align-items-center">
                 <small class="text-muted">
@@ -215,34 +338,73 @@ include '../includes/sidebar.php';
 </div><!-- /#content -->
 
 <script>
-// Load different date
+// ── Toggle a single student's attendance ──────────────
+function toggleAttendance(el) {
+    const id       = el.dataset.id;
+    const current  = el.dataset.state;           // 'Present' | 'Absent'
+    const next     = current === 'Present' ? 'Absent' : 'Present';
+
+    // Update hidden input
+    document.getElementById('status-' + id).value = next;
+
+    // Update toggle visual
+    el.dataset.state = next;
+    el.classList.remove('present', 'absent', 'unmarked');
+    el.classList.add(next.toLowerCase());
+
+    // Update label + icon
+    const lbl = document.getElementById('lbl-' + id);
+    if (next === 'Present') {
+        lbl.innerHTML = '<i class="bi bi-check-circle-fill toggle-icon"></i>Present';
+    } else {
+        lbl.innerHTML = '<i class="bi bi-x-circle-fill toggle-icon"></i>Absent';
+    }
+
+    // Pulse animation
+    el.classList.add('pulse');
+    el.addEventListener('animationend', () => el.classList.remove('pulse'), { once: true });
+
+    // Update row colour
+    const row = document.getElementById('row-' + id);
+    row.classList.remove('status-present', 'status-absent');
+    row.classList.add(next === 'Present' ? 'status-present' : 'status-absent');
+
+    updateCounts();
+}
+
+// ── Mark all students Present or Absent ───────────────
+function markAll(status) {
+    document.querySelectorAll('.att-toggle').forEach(el => {
+        if (el.dataset.state !== status) toggleAttendance(el);
+    });
+}
+
+// ── Recount summary badges ────────────────────────────
+function updateCounts() {
+    let present = 0, absent = 0, unmarked = 0;
+    document.querySelectorAll('.att-toggle').forEach(el => {
+        const s = el.dataset.state;
+        if (s === 'Present') present++;
+        else if (s === 'Absent') absent++;
+        else unmarked++;
+    });
+    document.getElementById('cnt-present').textContent  = present;
+    document.getElementById('cnt-absent').textContent   = absent;
+    document.getElementById('cnt-unmarked').textContent = unmarked;
+}
+
+// ── Load different date ───────────────────────────────
 function loadDate() {
     const d = document.getElementById('dateInput').value;
     if (d) window.location.href = 'mark.php?date=' + d;
 }
 
-// Mark all students Present or Absent
-function markAll(status) {
-    document.querySelectorAll('.attendance-radio').forEach(r => {
-        if (r.value === status) {
-            r.checked = true;
-            updateRowColor(r.dataset.id, status);
-        }
+// ── Filter students by name ───────────────────────────
+function filterStudents(query) {
+    const q = query.toLowerCase().trim();
+    document.querySelectorAll('#studentsBody tr').forEach(row => {
+        const name = row.dataset.name || '';
+        row.style.display = name.includes(q) ? '' : 'none';
     });
-}
-
-// Update row colour on radio change
-document.querySelectorAll('.attendance-radio').forEach(r => {
-    r.addEventListener('change', function () {
-        updateRowColor(this.dataset.id, this.value);
-    });
-});
-
-function updateRowColor(id, status) {
-    const row = document.getElementById('row-' + id);
-    if (!row) return;
-    row.classList.remove('table-success','table-danger');
-    row.style.opacity = '1';
-    row.classList.add(status === 'Present' ? 'table-success' : 'table-danger');
 }
 </script>

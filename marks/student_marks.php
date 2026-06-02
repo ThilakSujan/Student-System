@@ -165,7 +165,14 @@ function deleteMark(id) {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: 'id=' + id
     }).then(r=>r.json()).then(data=>{
-        if (data.success) location.reload(); else alert(data.message || 'Error');
+        if (data.success) {
+            window.showToast('Mark deleted successfully!', 'success');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            window.showToast(data.message || 'Failed to delete mark.', 'danger');
+        }
+    }).catch(() => {
+        window.showToast('An unexpected error occurred.', 'danger');
     });
 }
 </script>

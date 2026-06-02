@@ -195,6 +195,12 @@ include '../includes/sidebar.php';
         </div><!-- /container-fluid -->
     </div><!-- /#main-content -->
 
+<?php
+// Inject toast notification
+if (!empty($message)) {
+    echo "<script>window._toastMsg=" . json_encode($message) . ";window._toastType=" . json_encode($alert_type) . ";</script>";
+}
+?>
     <?php include '../includes/footer.php'; ?>
 
 </div><!-- /#content -->

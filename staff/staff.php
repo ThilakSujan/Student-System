@@ -123,6 +123,18 @@ $staff_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     </div>
 
+<?php
+// Inject toast notification
+// Handle redirect success from staff_add
+if (isset($_GET['success']) && $_GET['success'] == '1' && empty($success)) {
+    $success = "Staff member added successfully.";
+}
+if (!empty($success)) {
+    echo "<script>window._toastMsg=" . json_encode($success) . ";window._toastType='success';</script>";
+} elseif (!empty($error)) {
+    echo "<script>window._toastMsg=" . json_encode($error) . ";window._toastType='danger';</script>";
+}
+?>
     <?php require '../includes/footer.php'; ?>
 
 </div>

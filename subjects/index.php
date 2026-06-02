@@ -175,15 +175,24 @@ function deleteSubject(id) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('Subject deleted successfully!');
-                location.reload();
+                window.showToast('Subject deleted successfully!', 'success');
+                setTimeout(() => location.reload(), 1500);
             } else {
-                alert('Error: ' + data.message);
+                window.showToast(data.message || 'Failed to delete subject.', 'danger');
             }
+        })
+        .catch(() => {
+            window.showToast('An unexpected error occurred.', 'danger');
         });
     }
 }
 </script>
 </div>
 
+<?php
+// Inject toast notification
+if (!empty($message)) {
+    echo "<script>window._toastMsg=" . json_encode($message) . ";window._toastType=" . json_encode($alert_type) . ";</script>";
+}
+?>
 <?php include '../includes/footer.php'; ?>
