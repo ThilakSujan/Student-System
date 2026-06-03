@@ -15,7 +15,7 @@
     font-family: 'Inter', sans-serif;
     position: sticky;
     top: 0;
-    z-index: 1001;
+    z-index: 1001;       /* sidebar (1055) slides over this on mobile */
     flex-shrink: 0;
     transition:
         box-shadow 0.3s ease,
@@ -386,34 +386,63 @@ document.addEventListener('DOMContentLoaded', function () {
     const sidebar       = document.getElementById('sidebar');
     const overlay       = document.getElementById('sidebarOverlay');
 
-    if (sidebarToggle && sidebar && overlay) {
-        sidebarToggle.addEventListener('click', function (e) {
-            e.preventDefault();
-            sidebar.classList.toggle('show');
-            overlay.classList.toggle('show');
-        });
+    if (!sidebarToggle || !sidebar || !overlay) return;
 
-        overlay.addEventListener('click', function () {
-            sidebar.classList.remove('show');
-            overlay.classList.remove('show');
-        });
+    // ── Open / close helpers ───────────────────────────────────
+    function openSidebar() {
+        sidebar.classList.add('show');
+        // Overlay only covers the CONTENT area (right of sidebar)
+        // so it NEVER blocks sidebar link taps
+        overlay.style.left  = sidebar.offsetWidth + 'px';
+        overlay.style.right = '0';
+        overlay.classList.add('show');
+        document.body.style.overflow = 'hidden'; // prevent background scroll
+    }
 
-        sidebar.querySelectorAll('.nav-link').forEach(link => {
-            link.addEventListener('click', function () {
-                if (window.innerWidth < 992) {
-                    sidebar.classList.remove('show');
-                    overlay.classList.remove('show');
-                }
-            });
-        });
+    function closeSidebar() {
+        sidebar.classList.remove('show');
+        overlay.classList.remove('show');
+        overlay.style.left  = '';
+        overlay.style.right = '';
+        document.body.style.overflow = '';
+    }
 
-        window.addEventListener('resize', function () {
-            if (window.innerWidth >= 992) {
+    // ── Hamburger button ───────────────────────────────────────
+    sidebarToggle.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        sidebar.classList.contains('show') ? closeSidebar() : openSidebar();
+    });
+
+    // ── Tap overlay (content area) to close ───────────────────
+    // Use both click and touchstart for iOS reliability
+    function handleOverlayClose(e) {
+        e.preventDefault();
+        closeSidebar();
+    }
+    overlay.addEventListener('click',      handleOverlayClose);
+    overlay.addEventListener('touchstart', handleOverlayClose, { passive: false });
+
+    // ── Nav link clicks: let them navigate normally ────────────
+    // Just close the sidebar first, then the <a href> does its job
+    sidebar.querySelectorAll('a.nav-link').forEach(function(link) {
+        link.addEventListener('click', function () {
+            if (window.innerWidth < 992) {
+                // Close without preventing navigation
                 sidebar.classList.remove('show');
                 overlay.classList.remove('show');
+                overlay.style.left  = '';
+                document.body.style.overflow = '';
             }
         });
-    }
+    });
+
+    // ── On desktop resize: reset everything ──────────────────
+    window.addEventListener('resize', function () {
+        if (window.innerWidth >= 992) {
+            closeSidebar();
+        }
+    });
 
     // ── Scroll highlight ──────────────────────────────
     const navbar = document.getElementById('topNavbar');

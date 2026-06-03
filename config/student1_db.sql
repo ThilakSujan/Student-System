@@ -72,3 +72,17 @@ CREATE TABLE IF NOT EXISTS attendance (
     UNIQUE KEY uq_student_date (student_id, date),
     FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
 );
+
+-- Classes table
+CREATE TABLE IF NOT EXISTS classes (
+    id               INT PRIMARY KEY AUTO_INCREMENT,
+    class_name       VARCHAR(100) NOT NULL,
+    section          VARCHAR(20)  DEFAULT '',
+    academic_year    VARCHAR(20)  DEFAULT '',
+    class_teacher_id INT          DEFAULT NULL,
+    description      TEXT,
+    status           ENUM('Active','Inactive') DEFAULT 'Active',
+    created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (class_teacher_id) REFERENCES users(id) ON DELETE SET NULL
+);

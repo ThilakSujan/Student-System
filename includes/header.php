@@ -112,7 +112,7 @@
             background-color: #0f172a;
             flex-shrink: 0;
             position: relative;
-            transition: margin-left 0.3s ease;
+            transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
             overflow-y: auto;
             z-index: 1000;
             padding-bottom: 30px;
@@ -247,224 +247,109 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(0, 0, 0, 0.45);
             z-index: 999;
+            pointer-events: none;   /* inert when hidden */
         }
 
         .sidebar-overlay.show {
             display: block;
+            pointer-events: auto;   /* active only when open */
         }
 
         /* ══════════════════════════════════════════════════════
-           TABLET STYLES (768px and below)
+           TABLET + MOBILE — sidebar off-canvas, content full-width
         ══════════════════════════════════════════════════════ */
         @media (max-width: 991px) {
-            /* Floating Header */
-            .navbar {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                z-index: 1001;
-                width: 100%;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+            /* ── Wrapper: keep flex-row; sidebar is fixed so content fills width ── */
+            #wrapper {
+                flex-direction: row;
             }
 
+            /* ── Content always fills remaining width ── */
+            #content {
+                width: 100%;
+                min-width: 0;
+                flex: 1;
+                /* No top-margin needed — sticky navbar handles positioning */
+            }
+
+            /* ── Sidebar: full-height off-canvas drawer ── */
             #sidebar {
-                position: fixed;
-                width: 270px;
-                height: calc(100vh - 56px);
+                position: fixed !important;
+                top: 0;               /* covers from very top — no gap above navbar */
                 left: 0;
-                top: 56px;
-                margin-left: -270px;
+                width: 270px;
+                height: 100vh;        /* full viewport height */
+                z-index: 1055;        /* above overlay (1050) and navbar (1001) */
+                transform: translateX(-100%);
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                will-change: transform;
                 overflow-y: auto;
                 overflow-x: hidden;
-                padding-bottom: 40px;
+                padding-bottom: 60px;
                 scroll-behavior: smooth;
             }
 
-            #sidebar::-webkit-scrollbar {
-                width: 6px;
-            }
-
-            #sidebar::-webkit-scrollbar-track {
-                background: #343a40;
-            }
-
-            #sidebar::-webkit-scrollbar-thumb {
-                background: #0d6efd;
-                border-radius: 3px;
-            }
-
-            #sidebar::-webkit-scrollbar-thumb:hover {
-                background: #0b5ed7;
-            }
-
             #sidebar.show {
-                margin-left: 0;
+                transform: translateX(0) !important;
+                box-shadow: 6px 0 30px rgba(0, 0, 0, 0.35);
             }
 
+            /* ── Overlay: covers content behind open sidebar ── */
+            .sidebar-overlay {
+                z-index: 1050;       /* below sidebar, above everything else */
+            }
+
+            /* ── Scrollbar inside sidebar ── */
+            #sidebar::-webkit-scrollbar       { width: 4px; }
+            #sidebar::-webkit-scrollbar-track { background: transparent; }
+            #sidebar::-webkit-scrollbar-thumb { background: rgba(99,102,241,.5); border-radius: 4px; }
+
+            /* ── Show hamburger toggle ── */
             .sidebar-toggle {
-                display: inline-flex;
+                display: inline-flex !important;
                 align-items: center;
                 justify-content: center;
             }
 
-            #main-content {
-                padding: 16px;
-            }
+            /* ── Content padding ── */
+            #main-content    { padding: 16px; }
+            .container-fluid { padding-left: 12px; padding-right: 12px; }
 
-            #sidebar .sidebar-brand {
-                padding: 13px 15px;
-                font-size: 14px;
-            }
-
-            #sidebar .brand-text {
-                font-size: 13px;
-            }
-
-            #sidebar .brand-sub {
-                font-size: 10px;
-            }
-
-            #sidebar .nav-link {
-                padding: 8px 15px;
-                font-size: 12px;
-                gap: 9px;
-            }
-
-            #sidebar .nav-link i {
-                font-size: 17px;
-                flex-shrink: 0;
-            }
-
-            #sidebar .nav-section {
-                padding: 10px 15px 4px;
-                font-size: 9px;
-            }
-
-            #sidebar .submenu .nav-link {
-                padding-left: 38px;
-            }
-
-            .container-fluid {
-                padding-left: 12px;
-                padding-right: 12px;
-            }
+            /* ── Sidebar brand & nav tweaks ── */
+            #sidebar .sidebar-brand  { padding: 14px 16px; font-size: 14px; }
+            #sidebar .brand-text     { font-size: 13px; }
+            #sidebar .brand-sub      { font-size: 10px; }
+            #sidebar .nav-link       { padding: 9px 16px; font-size: 13px; gap: 10px; }
+            #sidebar .nav-link i     { font-size: 17px; flex-shrink: 0; }
+            #sidebar .nav-section    { padding: 10px 16px 4px; font-size: 9px; }
+            #sidebar .submenu .nav-link { padding-left: 40px; }
         }
 
         /* ══════════════════════════════════════════════════════
-           MOBILE STYLES (576px and below)
+           MOBILE (≤ 575px)
         ══════════════════════════════════════════════════════ */
         @media (max-width: 575px) {
+
             #sidebar {
-                width: 240px;
-                margin-left: -240px;
-                top: 56px;
-                height: calc(100vh - 56px);
-                overflow-y: auto;
-                overflow-x: hidden;
-                padding-bottom: 40px;
-                scroll-behavior: smooth;
+                width: 260px;        /* slightly narrower on phones */
             }
 
-            #sidebar::-webkit-scrollbar {
-                width: 5px;
-            }
+            #main-content    { padding: 12px; }
+            .container-fluid { padding-left: 8px; padding-right: 8px; }
 
-            #sidebar::-webkit-scrollbar-track {
-                background: #343a40;
-            }
+            /* Typography */
+            h2 { font-size: 19px !important; }
+            h4 { font-size: 15px !important; }
+            h5 { font-size: 14px !important; }
 
-            #sidebar::-webkit-scrollbar-thumb {
-                background: #0d6efd;
-                border-radius: 2px;
-            }
+            /* Buttons */
+            .btn-sm { padding: 0.3rem 0.65rem; font-size: 12px; }
 
-            #sidebar::-webkit-scrollbar-thumb:hover {
-                background: #0b5ed7;
-            }
-
-            #sidebar.show {
-                margin-left: 0;
-            }
-
-            #main-content {
-                padding: 12px;
-            }
-
-            #sidebar .sidebar-brand {
-                padding: 11px 13px;
-                font-size: 13px;
-            }
-
-            #sidebar .brand-text {
-                font-size: 11px;
-            }
-
-            #sidebar .brand-sub {
-                font-size: 9px;
-                margin-top: 1px;
-            }
-
-            #sidebar .nav-link {
-                padding: 7px 13px;
-                font-size: 11px;
-                gap: 8px;
-            }
-
-            #sidebar .nav-link i {
-                font-size: 15px;
-                flex-shrink: 0;
-                min-width: 15px;
-            }
-
-            #sidebar .nav-section {
-                padding: 8px 13px 3px;
-                font-size: 7px;
-            }
-
-            #sidebar .submenu .nav-link {
-                padding-left: 36px;
-            }
-
-            .sidebar-toggle {
-                padding: 6px 10px;
-                font-size: 20px;
-            }
-
-            .container-fluid {
-                padding-left: 8px;
-                padding-right: 8px;
-            }
-
-            /* Adjust heading sizes */
-            h2 {
-                font-size: 20px !important;
-            }
-
-            h4 {
-                font-size: 16px !important;
-            }
-
-            .btn-sm {
-                padding: 0.375rem 0.75rem;
-                font-size: 12px;
-            }
-
-            .table {
-                font-size: 13px;
-            }
-
-            .card-header {
-                padding: 12px !important;
-            }
-
-            .card-body {
-                padding: 12px !important;
-            }
-
-            /* Make tables scrollable on mobile */
+            /* Tables */
+            .table           { font-size: 13px; }
             .table-responsive {
                 display: block;
                 width: 100%;
@@ -472,110 +357,38 @@
                 -webkit-overflow-scrolling: touch;
             }
 
-            /* Stack form elements */
-            .row {
-                margin-left: -6px;
-                margin-right: -6px;
-            }
+            /* Cards */
+            .card-header { padding: 10px 12px !important; }
+            .card-body   { padding: 12px !important; }
 
-            .col-md-6, .col-lg-4, .col-lg-3 {
-                padding-left: 6px;
-                padding-right: 6px;
-                margin-bottom: 12px;
-            }
-
-            /* Dashboard cards */
-            .stat-card {
-                margin-bottom: 12px;
-            }
+            /* Sidebar text tighter */
+            #sidebar .sidebar-brand { padding: 12px 14px; font-size: 13px; }
+            #sidebar .brand-text    { font-size: 12px; }
+            #sidebar .brand-sub     { font-size: 9px; }
+            #sidebar .nav-link      { padding: 8px 14px; font-size: 12px; gap: 9px; }
+            #sidebar .nav-link i    { font-size: 15px; }
+            #sidebar .nav-section   { padding: 9px 14px 3px; font-size: 8px; }
         }
 
         /* ══════════════════════════════════════════════════════
-           EXTRA SMALL DEVICES (below 400px)
+           EXTRA SMALL (≤ 400px)
         ══════════════════════════════════════════════════════ */
-        @media (max-width: 399px) {
-            #sidebar {
-                width: 200px;
-                margin-left: -200px;
-                top: 56px;
-                height: calc(100vh - 56px);
-                overflow-y: auto;
-                overflow-x: hidden;
-                padding-bottom: 40px;
-                scroll-behavior: smooth;
-            }
+        @media (max-width: 400px) {
 
-            #sidebar::-webkit-scrollbar {
-                width: 4px;
-            }
+            #sidebar { width: 230px; }
 
-            #sidebar::-webkit-scrollbar-track {
-                background: #343a40;
-            }
+            #main-content    { padding: 10px; }
+            .container-fluid { padding-left: 6px; padding-right: 6px; }
 
-            #sidebar::-webkit-scrollbar-thumb {
-                background: #0d6efd;
-                border-radius: 2px;
-            }
+            h4 { font-size: 14px !important; }
+            .btn-sm { font-size: 11px; }
 
-            #sidebar::-webkit-scrollbar-thumb:hover {
-                background: #0b5ed7;
-            }
-
-            #sidebar .sidebar-brand {
-                padding: 10px 11px;
-                font-size: 12px;
-            }
-
-            #sidebar .brand-text {
-                font-size: 10px;
-            }
-
-            #sidebar .brand-sub {
-                font-size: 8px;
-            }
-
-            #sidebar .nav-link {
-                padding: 6px 11px;
-                font-size: 10px;
-                gap: 7px;
-            }
-
-            #sidebar .nav-link i {
-                font-size: 14px;
-                flex-shrink: 0;
-            }
-
-            #sidebar .nav-section {
-                padding: 7px 11px 2px;
-                font-size: 6px;
-            }
-
-            #sidebar .submenu .nav-link {
-                padding-left: 33px;
-            }
-
-            #main-content {
-                padding: 10px;
-            }
-
-            h2 {
-                font-size: 18px !important;
-            }
-
-            h4 {
-                font-size: 14px !important;
-            }
-
-            .btn-sm {
-                padding: 0.25rem 0.5rem;
-                font-size: 11px;
-            }
-
-            .table {
-                font-size: 11px;
-            }
+            #sidebar .nav-link   { padding: 7px 12px; font-size: 11px; gap: 8px; }
+            #sidebar .nav-link i { font-size: 14px; }
         }
+
+
+
 
         /* Responsive utility classes */
         @media (max-width: 767px) {

@@ -307,6 +307,11 @@ function sidebarActive(string $file, string $dir = ''): string {
 
         <?php if ($role === 'admin'): ?>
         <div class="nav-section">Admin</div>
+        <a href="<?= $base ?>/classes/index.php"
+           class="nav-link <?= sidebarActive('index.php', '/classes/') ?>">
+            <span class="nav-icon"><i class="bi bi-building-fill"></i></span>
+            Classes
+        </a>
         <a href="<?= $base ?>/subjects/index.php"
            class="nav-link <?= sidebarActive('index.php', '/subjects/') ?>">
             <span class="nav-icon"><i class="bi bi-book"></i></span>
