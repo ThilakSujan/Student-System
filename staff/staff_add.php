@@ -1,23 +1,21 @@
 <?php
+// ── All logic FIRST — before any output ──────────────────────
 require_once '../includes/auth.php';
 require_role(['admin']);
-
-$page_title = "Add Staff";
-$currentPage = 'staff';
-require '../includes/header.php';
-require '../includes/sidebar.php';
 include '../config/db_pdo.php';
 
-$error = "";
+$page_title  = "Add Staff";
+$currentPage = 'staff';
+
+$error   = "";
 $success = "";
 
 if (isset($_POST['add_staff'])) {
-    $username = trim($_POST['username']);
-    $email = trim($_POST['email']);
-    $password = $_POST['password'];
+    $username         = trim($_POST['username']);
+    $email            = trim($_POST['email']);
+    $password         = $_POST['password'];
     $confirm_password = $_POST['confirm_password'];
 
-    // Validation
     if (empty($username) || empty($email) || empty($password) || empty($confirm_password)) {
         $error = "Please fill in all fields.";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -27,7 +25,6 @@ if (isset($_POST['add_staff'])) {
     } elseif ($password !== $confirm_password) {
         $error = "Passwords do not match.";
     } else {
-        // Check if email or username already exists
         $stmt = $pdo->prepare("SELECT id FROM users WHERE email = :email OR username = :username");
         $stmt->execute([':email' => $email, ':username' => $username]);
 
@@ -39,10 +36,11 @@ if (isset($_POST['add_staff'])) {
                 $stmt = $pdo->prepare("INSERT INTO users (username, email, password, role) VALUES (:username, :email, :password, :role)");
                 $stmt->execute([
                     ':username' => $username,
-                    ':email' => $email,
+                    ':email'    => $email,
                     ':password' => $hashed,
-                    ':role' => 'staff'
+                    ':role'     => 'staff'
                 ]);
+                // Redirect BEFORE any output
                 header("Location: staff.php?success=1");
                 exit();
             } catch (Exception $e) {
@@ -51,6 +49,10 @@ if (isset($_POST['add_staff'])) {
         }
     }
 }
+
+// ── HTML output starts here ───────────────────────────────────
+require '../includes/header.php';
+require '../includes/sidebar.php';
 ?>
 
 <div id="content">
@@ -82,7 +84,7 @@ if (isset($_POST['add_staff'])) {
 
                             <div class="mb-3">
                                 <label class="form-label">Username</label>
-                                <input type="text" name="username" class="form-control" required 
+                                <input type="text" name="username" class="form-control" required
                                        value="<?php echo htmlspecialchars($_POST['username'] ?? ''); ?>">
                                 <small class="text-muted">Must be unique</small>
                             </div>
@@ -122,12 +124,8 @@ if (isset($_POST['add_staff'])) {
                     <div class="card-body">
                         <h5 class="card-title"><i class="bi bi-info-circle"></i> Staff Account Info</h5>
                         <ul class="list-unstyled">
-                            <li class="mb-2">
-                                <strong>Role:</strong> Staff
-                            </li>
-                            <li class="mb-2">
-                                <strong>Access:</strong> Student & Marks modules
-                            </li>
+                            <li class="mb-2"><strong>Role:</strong> Staff</li>
+                            <li class="mb-2"><strong>Access:</strong> Student &amp; Marks modules</li>
                             <li class="mb-2">
                                 <strong>Permissions:</strong>
                                 <ul>
@@ -154,7 +152,6 @@ if (isset($_POST['add_staff'])) {
     </div>
 
 <?php
-// Inject toast notification
 if (!empty($error)) {
     echo "<script>window._toastMsg=" . json_encode($error) . ";window._toastType='danger';</script>";
 }

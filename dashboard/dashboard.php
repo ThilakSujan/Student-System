@@ -36,6 +36,8 @@ while($sa=$subavg_res->fetch_assoc()){ $sub_labels[]=$sa['subject_name']; $sub_a
 $recent_res = $mysqli->query("SELECT * FROM students ORDER BY id DESC LIMIT 5");
 
 $my_marks=[]; $my_total=0; $my_pct=0; $my_grade='';
+$upcoming_exams = [];
+$today_date = date('Y-m-d');
 if ($user_role==='student') {
     $sid = $_SESSION['student_id'] ?? null;
     if (!$sid) {
@@ -50,7 +52,21 @@ if ($user_role==='student') {
         $my_pct  = $count>0 ? round($my_total/($count*100)*100,1) : 0;
         $my_grade= $my_pct>=90?'A+':($my_pct>=80?'A':($my_pct>=70?'B':($my_pct>=60?'C':($my_pct>=50?'D':'F'))));
     }
+    // Auto-mark past scheduled exams as Completed
+    $mysqli->query("UPDATE exam_schedule SET status='Completed' WHERE status='Scheduled' AND exam_date < '$today_date'");
+    // Fetch upcoming exams for this student (next 5)
+    $ex_res = $mysqli->query("
+        SELECT es.*, sub.subject_name, c.class_name, c.section
+        FROM exam_schedule es
+        LEFT JOIN subjects sub ON es.subject_id = sub.id
+        LEFT JOIN classes  c   ON es.class_id   = c.id
+        WHERE es.status = 'Scheduled' AND es.exam_date >= '$today_date'
+        ORDER BY es.exam_date ASC, es.start_time ASC
+        LIMIT 5
+    ");
+    if ($ex_res) { while($ex=$ex_res->fetch_assoc()) $upcoming_exams[] = $ex; }
 }
+
 
 require '../includes/header.php';
 require '../includes/sidebar.php';
@@ -220,8 +236,105 @@ require '../includes/sidebar.php';
     </div>
 </div>
 
+<!-- ── Upcoming Exams Widget (Student Dashboard) ── -->
+<div class="card card-anim mt-4">
+    <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2"
+         style="background:linear-gradient(90deg,#667eea18,#764ba210); border-bottom:1.5px solid #e8edf5;">
+        <span style="font-size:14px; font-weight:700; color:#374151;">
+            <i class="bi bi-calendar-event-fill me-2" style="color:#667eea;"></i>Upcoming Exams
+        </span>
+        <a href="../exam/index.php" class="btn btn-sm"
+           style="background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border-radius:8px;font-size:.8rem;padding:5px 14px;border:none;">
+            <i class="bi bi-arrow-right me-1"></i>View All
+        </a>
+    </div>
+    <div class="card-body p-0">
+        <?php if (empty($upcoming_exams)): ?>
+        <div class="text-center py-5" style="color:#94a3b8;">
+            <i class="bi bi-calendar-check" style="font-size:2.5rem;display:block;margin-bottom:10px;opacity:.4;"></i>
+            <p class="mb-0" style="font-size:.9rem;">No upcoming exams scheduled. All clear! 🎉</p>
+        </div>
+        <?php else: ?>
+        <!-- Desktop Table -->
+        <div class="d-none d-md-block table-responsive">
+            <table class="table mb-0" style="font-size:.88rem;">
+                <thead style="background:#f8faff;">
+                    <tr>
+                        <?php foreach(['#','Exam Title','Subject','Date','Time','Venue','Countdown'] as $h): ?>
+                        <th style="padding:11px 16px;font-size:.75rem;text-transform:uppercase;letter-spacing:.07em;color:#64748b;border-bottom:2px solid #e2e8f0;font-weight:600;"><?= $h ?></th>
+                        <?php endforeach; ?>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($upcoming_exams as $i => $ex):
+                        $exDate  = date('d M Y', strtotime($ex['exam_date']));
+                        $exTime  = $ex['start_time'] ? date('g:i A', strtotime($ex['start_time'])) : '—';
+                        if ($ex['end_time']) $exTime .= ' – '.date('g:i A', strtotime($ex['end_time']));
+                        $diff    = (int)((strtotime($ex['exam_date']) - strtotime($today_date)) / 86400);
+                        if ($diff === 0)      { $cLabel='Today!';    $cColor='#dc2626'; }
+                        elseif ($diff === 1)  { $cLabel='Tomorrow';  $cColor='#d97706'; }
+                        else                 { $cLabel="In $diff days"; $cColor='#667eea'; }
+                        $typeColors=['Internal'=>['#ede9fe','#5b21b6'],'External'=>['#fef3c7','#92400e'],
+                                     'Practical'=>['#d1fae5','#065f46'],'Viva'=>['#fce7f3','#9d174d'],'Other'=>['#f1f5f9','#475569']];
+                        [$tbg,$tclr] = $typeColors[$ex['exam_type']] ?? ['#f1f5f9','#475569'];
+                    ?>
+                    <tr style="border-bottom:1px solid #f1f5f9;">
+                        <td style="padding:12px 16px;">
+                            <div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;"><?= $i+1 ?></div>
+                        </td>
+                        <td style="padding:12px 16px;">
+                            <div style="font-weight:600;color:#1e293b;margin-bottom:3px;"><?= htmlspecialchars($ex['exam_title']) ?></div>
+                            <span style="font-size:.7rem;font-weight:600;background:<?= $tbg ?>;color:<?= $tclr ?>;padding:2px 8px;border-radius:20px;text-transform:uppercase;"><?= $ex['exam_type'] ?></span>
+                        </td>
+                        <td style="padding:12px 16px;color:#64748b;"><?= $ex['subject_name'] ? htmlspecialchars($ex['subject_name']) : '—' ?></td>
+                        <td style="padding:12px 16px;font-weight:600;color:#374151;"><?= $exDate ?></td>
+                        <td style="padding:12px 16px;color:#64748b;"><?= $exTime ?></td>
+                        <td style="padding:12px 16px;color:#64748b;"><?= $ex['venue'] ? htmlspecialchars($ex['venue']) : '—' ?></td>
+                        <td style="padding:12px 16px;font-weight:700;color:<?= $cColor ?>;"><?= $cLabel ?></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Mobile Cards -->
+        <div class="d-block d-md-none p-3">
+            <?php foreach ($upcoming_exams as $ex):
+                $dayStr = date('d', strtotime($ex['exam_date']));
+                $monStr = date('M', strtotime($ex['exam_date']));
+                $exTime = $ex['start_time'] ? date('g:i A', strtotime($ex['start_time'])) : '';
+                if ($ex['end_time']) $exTime .= ' – '.date('g:i A', strtotime($ex['end_time']));
+                $diff = (int)((strtotime($ex['exam_date']) - strtotime($today_date)) / 86400);
+                if ($diff === 0)      { $cLabel='Today!';    $cColor='#dc2626'; }
+                elseif ($diff === 1)  { $cLabel='Tomorrow';  $cColor='#d97706'; }
+                else                 { $cLabel="In $diff days"; $cColor='#667eea'; }
+            ?>
+            <div style="display:flex;gap:12px;margin-bottom:12px;padding:12px 14px;background:#f8faff;border-radius:12px;border-left:4px solid #667eea;">
+                <div style="background:linear-gradient(135deg,#667eea,#764ba2);border-radius:10px;color:#fff;text-align:center;padding:8px 10px;min-width:48px;flex-shrink:0;">
+                    <div style="font-size:1.3rem;font-weight:700;line-height:1;"><?= $dayStr ?></div>
+                    <div style="font-size:.65rem;text-transform:uppercase;letter-spacing:.07em;opacity:.9;"><?= $monStr ?></div>
+                </div>
+                <div style="flex:1;min-width:0;">
+                    <div style="font-weight:700;color:#1e293b;font-size:.93rem;"><?= htmlspecialchars($ex['exam_title']) ?></div>
+                    <?php if ($ex['subject_name']): ?>
+                    <div style="color:#64748b;font-size:.78rem;margin-top:2px;"><i class="bi bi-book me-1"></i><?= htmlspecialchars($ex['subject_name']) ?></div>
+                    <?php endif; ?>
+                    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;align-items:center;">
+                        <?php if ($exTime): ?><span style="font-size:.75rem;color:#64748b;"><i class="bi bi-clock me-1"></i><?= $exTime ?></span><?php endif; ?>
+                        <?php if ($ex['venue']): ?><span style="font-size:.75rem;color:#64748b;"><i class="bi bi-geo-alt me-1"></i><?= htmlspecialchars($ex['venue']) ?></span><?php endif; ?>
+                        <span style="font-size:.75rem;font-weight:700;color:<?= $cColor ?>;margin-left:auto;"><?= $cLabel ?></span>
+                    </div>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
+    </div>
+</div>
+
 <?php else: ?>
 <!-- ══ ADMIN / STAFF DASHBOARD ══ -->
+
 
 <div class="content-header mb-4 dash-header">
     <h2 class="mb-1"><i class="bi bi-speedometer2"></i> Dashboard</h2>

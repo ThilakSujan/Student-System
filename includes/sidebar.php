@@ -259,6 +259,13 @@ function sidebarActive(string $file, string $dir = ''): string {
             My Attendance
         </a>
 
+        <div class="nav-section">Exams</div>
+        <a href="<?= $base ?>/exam/index.php"
+           class="nav-link <?= sidebarActive('index.php', '/exam/') ?>">
+            <span class="nav-icon"><i class="bi bi-calendar-event"></i></span>
+            Exam Schedule
+        </a>
+
     <?php else: ?>
         <!-- ── Admin / Staff menu ── -->
         <div class="nav-section">Overview</div>
@@ -303,6 +310,18 @@ function sidebarActive(string $file, string $dir = ''): string {
            class="nav-link <?= sidebarActive('add.php') ?>">
             <span class="nav-icon"><i class="bi bi-pencil-square"></i></span>
             Enter Marks
+        </a>
+
+        <div class="nav-section">Exams</div>
+        <a href="<?= $base ?>/exam/index.php"
+           class="nav-link <?= sidebarActive('index.php', '/exam/') ?>">
+            <span class="nav-icon"><i class="bi bi-calendar-event"></i></span>
+            Exam Schedule
+        </a>
+        <a href="<?= $base ?>/exam/add.php"
+           class="nav-link <?= sidebarActive('add.php', '/exam/') ?>">
+            <span class="nav-icon"><i class="bi bi-calendar-plus"></i></span>
+            Schedule Exam
         </a>
 
         <?php if ($role === 'admin'): ?>
