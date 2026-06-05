@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 description=?, status=?
             WHERE id=?
         ");
-        $upd->bind_param('siissssssi',
+        $upd->bind_param('siisssssssi',
             $exam_title, $subject_id, $class_id,
             $exam_date, $start_time, $end_time,
             $venue, $exam_type, $description, $status, $exam_id

@@ -294,6 +294,11 @@
                 'admin'       => 'bi-shield-lock',
                 'institute'   => 'bi-building',
                 'profile'     => 'bi-person-badge',
+                'fee'         => 'bi-cash-coin',
+                'categor'     => 'bi-tags',
+                'structure'   => 'bi-list-check',
+                'payment'     => 'bi-credit-card',
+                'report'      => 'bi-bar-chart',
             ];
             $title_lc = strtolower($page_title ?? 'dashboard');
             $icon = 'bi-grid';

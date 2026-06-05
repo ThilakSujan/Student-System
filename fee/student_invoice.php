@@ -1,74 +1,88 @@
 <?php
 session_start();
 require_once '../includes/auth.php';
-require_login();
+require_role(['student', 'admin', 'staff']);
 require_once '../config/db.php';
 
-if (!isset($_GET['student_id']) || !is_numeric($_GET['student_id'])) {
-    header("Location: students.php"); exit();
-}
+$role        = $_SESSION['role'] ?? '';
+$current_uid = (int)($_SESSION['user_id'] ?? 0);
 
-$sid = (int)$_GET['student_id'];
-
-// Restrict student access - students can only view their own report card
-if ($_SESSION['role'] === 'student') {
-    $student_id = isset($_SESSION['student_id']) ? $_SESSION['student_id'] : null;
-    if (!$student_id || $student_id !== $sid) {
-        header("Location: ../dashboard/dashboard.php"); exit();
+// Admin/staff can pass ?student_id=X
+if (in_array($role, ['admin', 'staff']) && isset($_GET['student_id'])) {
+    $student_id = (int)$_GET['student_id'];
+} else {
+    // Strictly enforce student role sees only their own record
+    $student_id = (int)($_SESSION['student_id'] ?? 0);
+    
+    // Fallback if student_id not in session but email is
+    if (!$student_id && !empty($_SESSION['email'])) {
+        $email_q    = $mysqli->real_escape_string($_SESSION['email']);
+        $sq         = $mysqli->query("SELECT id FROM students WHERE email='$email_q' LIMIT 1");
+        $student_id = $sq ? (int)($sq->fetch_assoc()['id'] ?? 0) : 0;
     }
 }
 
-$student = $mysqli->query("SELECT * FROM students WHERE id=$sid LIMIT 1")->fetch_assoc();
-if (!$student) { header("Location: students.php"); exit(); }
+// Fetch student info
+$student = null;
+if ($student_id) {
+    $sr      = $mysqli->query("SELECT * FROM students WHERE id=$student_id LIMIT 1");
+    $student = $sr ? $sr->fetch_assoc() : null;
+}
+
+if (!$student) {
+    if ($role === 'student') {
+        header("Location: ../dashboard/dashboard.php");
+    } else {
+        header("Location: staff_report.php");
+    }
+    exit();
+}
 
 $institute = $mysqli->query("SELECT * FROM institute_profile LIMIT 1")->fetch_assoc() ?? [];
 
-$mres = $mysqli->query(
-    "SELECT m.marks_obtained, m.total_marks, sub.subject_name, sub.subject_code
-     FROM marks m JOIN subjects sub ON sub.id=m.subject_id
-     WHERE m.student_id=$sid ORDER BY sub.subject_code ASC"
+// Fetch applicable fee structures for this student
+$fee_data = [];
+$res = $mysqli->query(
+    "SELECT fs.id AS struct_id, fc.name AS category, fs.academic_year,
+            fs.amount, fs.due_date, fs.description,
+            COALESCE(cl.class_name,'—') AS class_name,
+            COALESCE(cl.section,'') AS section,
+            COALESCE(
+                (SELECT SUM(fp.amount_paid)
+                 FROM fee_payments fp
+                 WHERE fp.student_id = $student_id
+                   AND fp.fee_assignment_id = fs.id), 0
+            ) AS paid
+     FROM fee_structures fs
+     JOIN fee_categories fc ON fc.id = fs.category_id
+     LEFT JOIN classes cl   ON cl.id = fs.class_id
+     WHERE fs.status = 'Active'
+       AND (
+           fs.class_id IS NULL
+           OR fs.class_id IN (
+               SELECT class_id FROM class_students WHERE student_id = $student_id
+           )
+       )
+     ORDER BY fs.academic_year DESC, fc.name"
 );
-$marks_list = $mres ? $mres->fetch_all(MYSQLI_ASSOC) : [];
+$fee_data = $res ? $res->fetch_all(MYSQLI_ASSOC) : [];
 
-// Totals
-$total_obtained = array_sum(array_column($marks_list, 'marks_obtained'));
-$total_max      = array_sum(array_column($marks_list, 'total_marks'));
-$percentage     = $total_max > 0 ? round($total_obtained / $total_max * 100, 2) : 0;
-$pass           = empty(array_filter($marks_list, fn($m) => $m['marks_obtained'] < $m['total_marks'] * 0.35));
+// Compute totals
+$grand_total   = array_sum(array_column($fee_data, 'amount'));
+$grand_paid    = array_sum(array_column($fee_data, 'paid'));
+$grand_pending = $grand_total - $grand_paid;
+$percentage    = $grand_total > 0 ? round(($grand_paid / $grand_total) * 100, 2) : 0;
 
-// Grade
-function grade($pct) {
-    if ($pct>=90) return ['A+','Outstanding'];
-    if ($pct>=80) return ['A','Excellent'];
-    if ($pct>=70) return ['B','Very Good'];
-    if ($pct>=60) return ['C','Good'];
-    if ($pct>=50) return ['D','Average'];
-    return ['F','Fail'];
-}
-function subGrade($o,$m) { return grade($m>0?$o/$m*100:0)[0]; }
-function gradeStyle($g) {
-    return ['A+'=>'#d1fae5;color:#065f46','A'=>'#dbeafe;color:#1e40af',
-            'B'=>'#e0e7ff;color:#3730a3','C'=>'#fef3c7;color:#92400e',
-            'D'=>'#ffedd5;color:#9a3412','F'=>'#fee2e2;color:#991b1b'][$g] ?? '#f3f4f6;color:#374151';
-}
+$status_overall = $grand_pending <= 0 ? 'CLEARED' : 'PENDING';
+$acad_year = !empty($fee_data) ? $fee_data[0]['academic_year'] : (date('Y').'-'.(date('Y')+1));
 
-[$grade, $grade_desc] = grade($percentage);
-$pass_fail = ($pass && $grade!=='F') ? 'PASS' : 'FAIL';
-
-// Rank
-$above     = $mysqli->query("SELECT COUNT(DISTINCT student_id) AS c FROM marks GROUP BY student_id HAVING SUM(marks_obtained)>$total_obtained")->fetch_all();
-$rank      = count($above) + 1;
-$total_rnk = $mysqli->query("SELECT COUNT(DISTINCT student_id) FROM marks")->fetch_row()[0];
-$medals    = [1=>'🥇',2=>'🥈',3=>'🥉'];
-$medal     = $medals[$rank] ?? '🎓';
-$acad_year = date('Y').'-'.(date('Y')+1);
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Report Card — <?= htmlspecialchars($student['student_name']) ?></title>
+<title>Fee Report Card — <?= htmlspecialchars($student['student_name']) ?></title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 <style>
@@ -152,9 +166,7 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; margin:0; }
 .pass-badge { display:inline-block; padding:6px 20px; border-radius:30px; font-size:15px; font-weight:800; }
 .pass-badge.pass { background:#d1fae5; color:#065f46; }
 .pass-badge.fail { background:#fee2e2; color:#991b1b; }
-
-/* Rank */
-.rc-rank { padding:16px 32px; background:#f8f9fa; border-bottom:1px solid #f0f0f0; display:flex; align-items:center; gap:16px; }
+.pass-badge.partial { background:#fef3c7; color:#92400e; }
 
 /* Remarks */
 .remarks-box { background:#f8f9fa; border-radius:8px; border-left:4px solid #0d6efd; padding:12px 16px; font-size:13px; color:#374151; }
@@ -193,8 +205,6 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; margin:0; }
     .result-grid { grid-template-columns: 1fr; }
     .rc-strip { flex-direction: column; text-align: center; gap: 8px; }
     .action-bar { flex-direction: column; gap: 12px; }
-    .rc-rank { flex-direction: column; text-align: center; }
-    .rc-rank .ms-auto { margin-left: 0 !important; margin-top: 10px; }
 }
 
 @media print {
@@ -209,7 +219,11 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; margin:0; }
 <body>
 
 <div class="action-bar">
-    <a href="students.php"><i class="bi bi-arrow-left-circle-fill"></i> Back to Students</a>
+    <?php if ($role === 'student'): ?>
+        <a href="../dashboard/dashboard.php"><i class="bi bi-arrow-left-circle-fill"></i> Back to Dashboard</a>
+    <?php else: ?>
+        <a href="staff_report.php"><i class="bi bi-arrow-left-circle-fill"></i> Back to Reports</a>
+    <?php endif; ?>
     <div class="d-flex gap-2">
         <button onclick="window.print()" class="btn btn-outline-light btn-sm">
             <i class="bi bi-printer me-1"></i> Print
@@ -223,7 +237,7 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; margin:0; }
 <div class="report-wrap">
 <div class="report-card">
 
-    <?php if ($pass_fail==='FAIL'): ?><div class="watermark">FAIL</div><?php endif; ?>
+    <?php if ($status_overall === 'PENDING'): ?><div class="watermark">PENDING</div><?php endif; ?>
 
     <!-- Header -->
     <div class="rc-header">
@@ -252,7 +266,7 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; margin:0; }
             </p>
         </div>
         <div class="rc-badge">
-            <span>Report Card</span>
+            <span>Fee Report</span>
             <small>Academic Year</small>
             <strong><?= $acad_year ?></strong>
         </div>
@@ -283,47 +297,52 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; margin:0; }
         </div>
     </div>
 
-    <!-- Marks -->
+    <!-- Fee Details -->
     <div class="rc-section">
-        <h5><i class="bi bi-journal-check me-1"></i>Marks Sheet</h5>
-        <?php if (empty($marks_list)): ?>
+        <h5><i class="bi bi-receipt me-1"></i>Fee Details</h5>
+        <?php if (empty($fee_data)): ?>
             <div class="text-center text-muted py-4">
-                <i class="bi bi-inbox fs-3 d-block mb-2"></i>No marks found.
+                <i class="bi bi-inbox fs-3 d-block mb-2"></i>No fee structures found.
             </div>
         <?php else: ?>
         <div class="table-responsive">
         <table class="marks-table">
             <thead>
                 <tr>
-                    <th>#</th><th>Code</th><th>Subject</th>
-                    <th>Max</th><th>Obtained</th><th>Progress</th>
-                    <th>Grade</th><th>Status</th>
+                    <th>#</th><th>Category</th><th>Academic Year</th>
+                    <th>Total Fee</th><th>Paid</th><th>Progress</th>
+                    <th>Balance</th><th>Status</th>
                 </tr>
             </thead>
             <tbody>
-            <?php foreach ($marks_list as $i => $m):
-                $sp  = round($m['marks_obtained']/$m['total_marks']*100,1);
-                $sg  = subGrade($m['marks_obtained'],$m['total_marks']);
-                $bc  = $sp>=75?'#198754':($sp>=50?'#ffc107':'#dc3545');
-                $gs  = gradeStyle($sg);
+            <?php foreach ($fee_data as $i => $f):
+                $balance = $f['amount'] - $f['paid'];
+                $sp = $f['amount'] > 0 ? round(($f['paid'] / $f['amount']) * 100, 1) : 0;
+                $bc = $sp == 100 ? '#198754' : ($sp > 0 ? '#ffc107' : '#dc3545');
+                
+                $overdue = $f['due_date'] && $f['due_date'] < date('Y-m-d') && $balance > 0;
+                if ($balance <= 0)           { $status = 'Paid';    $cls = 'success'; }
+                elseif ($f['paid'] > 0)      { $status = 'Partial'; $cls = 'warning'; }
+                elseif ($overdue)            { $status = 'Overdue'; $cls = 'danger';  }
+                else                         { $status = 'Pending'; $cls = 'danger';  }
             ?>
             <tr>
                 <td class="text-muted"><?= $i+1 ?></td>
-                <td><strong><?= htmlspecialchars($m['subject_code']) ?></strong></td>
-                <td><?= htmlspecialchars($m['subject_name']) ?></td>
-                <td><?= $m['total_marks'] ?></td>
-                <td><strong><?= $m['marks_obtained'] ?></strong></td>
+                <td><strong><?= htmlspecialchars($f['category']) ?></strong></td>
+                <td><?= htmlspecialchars($f['academic_year']) ?></td>
+                <td>₹<?= number_format($f['amount'], 2) ?></td>
+                <td><strong>₹<?= number_format($f['paid'], 2) ?></strong></td>
                 <td style="min-width:80px">
                     <div style="font-size:11px;color:#6c757d"><?= $sp ?>%</div>
                     <div class="mini-bar"><div class="mini-fill" style="width:<?= $sp ?>%;background:<?= $bc ?>"></div></div>
                 </td>
-                <td><span style="background:<?= $gs ?>;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:700"><?= $sg ?></span></td>
+                <td class="<?= $balance > 0 ? 'text-danger fw-bold' : 'text-success' ?>">
+                    ₹<?= number_format(max($balance, 0), 2) ?>
+                </td>
                 <td>
-                    <?php if ($m['marks_obtained']>=$m['total_marks']*0.35): ?>
-                        <span class="text-success fw-semibold" style="font-size:12px"><i class="bi bi-check-circle-fill me-1"></i>Pass</span>
-                    <?php else: ?>
-                        <span class="text-danger fw-semibold" style="font-size:12px"><i class="bi bi-x-circle-fill me-1"></i>Fail</span>
-                    <?php endif; ?>
+                    <span class="text-<?= $cls ?> fw-semibold" style="font-size:12px">
+                        <i class="bi <?= $balance <= 0 ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill' ?> me-1"></i><?= $status ?>
+                    </span>
                 </td>
             </tr>
             <?php endforeach; ?>
@@ -331,10 +350,10 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; margin:0; }
             <tfoot>
                 <tr>
                     <td colspan="3" class="text-end"><strong>Total</strong></td>
-                    <td><strong><?= $total_max ?></strong></td>
-                    <td><strong><?= $total_obtained ?></strong></td>
+                    <td><strong>₹<?= number_format($grand_total, 2) ?></strong></td>
+                    <td><strong>₹<?= number_format($grand_paid, 2) ?></strong></td>
                     <td style="font-size:12px;color:#6c757d"><?= $percentage ?>%</td>
-                    <td colspan="2"></td>
+                    <td colspan="2" class="<?= $grand_pending > 0 ? 'text-danger' : 'text-success' ?>"><strong>₹<?= number_format($grand_pending, 2) ?> Pending</strong></td>
                 </tr>
             </tfoot>
         </table>
@@ -346,62 +365,49 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; margin:0; }
     <div class="rc-section">
         <div class="result-grid">
             <div class="result-box">
-                <div class="rb-lbl">Total Marks</div>
-                <div class="rb-val text-primary"><?= $total_obtained ?></div>
-                <div class="rb-sub">out of <?= $total_max ?></div>
+                <div class="rb-lbl">Total Fees</div>
+                <div class="rb-val text-primary">₹<?= number_format($grand_total, 2) ?></div>
+                <div class="rb-sub">Overall Payable</div>
             </div>
             <div class="result-box">
-                <div class="rb-lbl">Percentage</div>
-                <div class="rb-val" style="color:#0891b2"><?= $percentage ?>%</div>
-                <div class="rb-sub"><?= $grade_desc ?></div>
+                <div class="rb-lbl">Amount Paid</div>
+                <div class="rb-val" style="color:#0891b2">₹<?= number_format($grand_paid, 2) ?></div>
+                <div class="rb-sub">Total Collected</div>
             </div>
             <div class="result-box">
-                <div class="rb-lbl">Grade</div>
-                <div class="rb-val" style="color:#7c3aed"><?= $grade ?></div>
-                <div class="rb-sub"><?= $grade_desc ?></div>
+                <div class="rb-lbl">Balance Due</div>
+                <div class="rb-val" style="color:#dc3545">₹<?= number_format(max($grand_pending, 0), 2) ?></div>
+                <div class="rb-sub">Pending Amount</div>
             </div>
             <div class="result-box">
-                <div class="rb-lbl">Result</div>
+                <div class="rb-lbl">Fee Status</div>
                 <div class="rb-val" style="font-size:18px;margin-top:4px">
-                    <span class="pass-badge <?= strtolower($pass_fail) ?>"><?= $pass_fail ?></span>
+                    <?php if ($grand_pending <= 0): ?>
+                        <span class="pass-badge pass">CLEARED</span>
+                    <?php elseif ($grand_paid > 0): ?>
+                        <span class="pass-badge partial">PARTIAL</span>
+                    <?php else: ?>
+                        <span class="pass-badge fail">PENDING</span>
+                    <?php endif; ?>
                 </div>
-                <div class="rb-sub mt-1">Overall Result</div>
+                <div class="rb-sub mt-1">Overall Status</div>
             </div>
         </div>
     </div>
-
-    <!-- Rank -->
-    <?php if (!empty($marks_list)): ?>
-    <div class="rc-rank">
-        <div style="font-size:32px"><?= $medal ?></div>
-        <div>
-            <strong style="font-size:18px;color:#1a2332">Rank <?= $rank ?></strong>
-            <span style="font-size:13px;color:#374151"> out of <?= $total_rnk ?> students</span>
-            <div style="font-size:12px;color:#6b7280;margin-top:2px">Based on total marks across all subjects</div>
-        </div>
-        <div class="ms-auto text-end">
-            <div style="font-size:11px;color:#9ca3af;text-transform:uppercase">Class Rank</div>
-            <div style="font-size:32px;font-weight:800;color:#1a2332;line-height:1"><?= $rank ?></div>
-        </div>
-    </div>
-    <?php endif; ?>
 
     <!-- Remarks -->
     <div class="rc-section">
         <h5><i class="bi bi-chat-square-text me-1"></i>Remarks</h5>
         <div class="remarks-box">
             <?php
-            $remarks = [
-                90 => "Outstanding performance! Keep up the excellent work.",
-                80 => "Excellent performance. Shows great dedication and effort.",
-                70 => "Very good performance. Continue to work hard and improve.",
-                60 => "Good performance. There is room for improvement in some areas.",
-                50 => "Average performance. Needs to put in more effort and focus.",
-                0  => empty($marks_list) ? "No marks have been recorded for this student yet."
-                                         : "Below average performance. Requires additional support.",
-            ];
-            foreach ($remarks as $threshold => $text) {
-                if ($percentage >= $threshold) { echo $text; break; }
+            if ($grand_total == 0) {
+                echo "No fees assigned yet.";
+            } elseif ($grand_pending <= 0) {
+                echo "All fees cleared. Outstanding balance is zero.";
+            } elseif ($grand_paid > 0) {
+                echo "Partial payment received. Please clear the pending balance of ₹" . number_format($grand_pending, 2) . " before the due date.";
+            } else {
+                echo "No fee payment received. Please pay the total amount of ₹" . number_format($grand_total, 2) . " immediately.";
             }
             ?>
         </div>
@@ -412,7 +418,7 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; margin:0; }
         <div class="sig-box">
             <div style="height:36px"></div>
             <div class="sig-line"></div>
-            <div class="sig-lbl">Class Teacher</div>
+            <div class="sig-lbl">Accounts Officer</div>
         </div>
         <div class="text-center">
             <div class="stamp-circle"><?= htmlspecialchars(strtoupper(substr($institute['institute_name']??'Institute',0,11))) ?></div>
@@ -432,7 +438,7 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; margin:0; }
     <!-- Bottom strip -->
     <div class="rc-strip">
         <span>Generated on <?= date('d M Y, h:i A') ?></span>
-        <span><?= htmlspecialchars($institute['institute_name']??'Student System') ?> &mdash; Student Management System</span>
+        <span><?= htmlspecialchars($institute['institute_name']??'Student System') ?> &mdash; Finance Department</span>
     </div>
 
 </div><!-- /report-card -->

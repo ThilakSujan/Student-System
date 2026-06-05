@@ -266,6 +266,13 @@ function sidebarActive(string $file, string $dir = ''): string {
             Exam Schedule
         </a>
 
+        <div class="nav-section">Finance</div>
+        <a href="<?= $base ?>/fee/student_report.php"
+           class="nav-link <?= sidebarActive('student_report.php', '/fee/') ?>">
+            <span class="nav-icon"><i class="bi bi-receipt"></i></span>
+            My Fee Report
+        </a>
+
     <?php else: ?>
         <!-- ── Admin / Staff menu ── -->
         <div class="nav-section">Overview</div>
@@ -323,6 +330,60 @@ function sidebarActive(string $file, string $dir = ''): string {
             <span class="nav-icon"><i class="bi bi-calendar-plus"></i></span>
             Schedule Exam
         </a>
+
+        <?php if ($role === 'admin'): ?>
+        <div class="nav-section">Finance</div>
+        <a href="<?= $base ?>/fee/index.php"
+           class="nav-link <?= sidebarActive('index.php', '/fee/') ?>">
+            <span class="nav-icon"><i class="bi bi-cash-coin"></i></span>
+            Fee Management
+        </a>
+        <a href="<?= $base ?>/fee/categories.php"
+           class="nav-link <?= sidebarActive('categories.php', '/fee/') ?>">
+            <span class="nav-icon"><i class="bi bi-tags"></i></span>
+            Fee Categories
+        </a>
+        <a href="<?= $base ?>/fee/structures.php"
+           class="nav-link <?= sidebarActive('structures.php', '/fee/') ?>">
+            <span class="nav-icon"><i class="bi bi-list-check"></i></span>
+            Fee Structures
+        </a>
+        <a href="<?= $base ?>/fee/payments.php"
+           class="nav-link <?= sidebarActive('payments.php', '/fee/') ?>">
+            <span class="nav-icon"><i class="bi bi-credit-card"></i></span>
+            Payments
+        </a>
+        <a href="<?= $base ?>/fee/report.php"
+           class="nav-link <?= sidebarActive('report.php', '/fee/') ?>">
+            <span class="nav-icon"><i class="bi bi-bar-chart"></i></span>
+            Fee Analytics
+        </a>
+        <a href="<?= $base ?>/fee/staff_report.php"
+           class="nav-link <?= sidebarActive('staff_report.php', '/fee/') ?>">
+            <span class="nav-icon"><i class="bi bi-clipboard-data"></i></span>
+            Pending Dues
+        </a>
+        <a href="<?= $base ?>/fee/student_report.php"
+           class="nav-link <?= sidebarActive('student_report.php', '/fee/') ?>">
+            <span class="nav-icon"><i class="bi bi-person-lines-fill"></i></span>
+            Student Fee Report
+        </a>
+
+        <?php elseif ($role === 'staff'): ?>
+        <div class="nav-section">Finance</div>
+        <a href="<?= $base ?>/fee/staff_report.php"
+           class="nav-link <?= sidebarActive('staff_report.php', '/fee/') ?>">
+            <span class="nav-icon"><i class="bi bi-clipboard-data"></i></span>
+            Fee Pending Report
+        </a>
+        <a href="<?= $base ?>/fee/student_report.php"
+           class="nav-link <?= sidebarActive('student_report.php', '/fee/') ?>">
+            <span class="nav-icon"><i class="bi bi-person-lines-fill"></i></span>
+            Student Fee Report
+        </a>
+
+        <?php endif; ?>
+
 
         <?php if ($role === 'admin'): ?>
         <div class="nav-section">Admin</div>
