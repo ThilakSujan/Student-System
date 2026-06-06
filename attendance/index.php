@@ -63,11 +63,17 @@ include '../includes/sidebar.php';
                 <?= $role==='student' ? 'Your attendance record' : 'Day-wise student attendance records' ?>
             </p>
         </div>
-        <?php if ($role !== 'student'): ?>
-        <a href="mark.php" class="btn btn-primary btn-sm">
-            <i class="bi bi-calendar-check me-1"></i> Mark Attendance
-        </a>
-        <?php endif; ?>
+        <div>
+            <?php if ($role !== 'student'): ?>
+            <a href="mark.php" class="btn btn-primary btn-sm">
+                <i class="bi bi-calendar-check me-1"></i> Mark Attendance
+            </a>
+            <?php else: ?>
+            <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#exportModal">
+                <i class="bi bi-file-earmark-excel me-1"></i> Download Monthly Report
+            </button>
+            <?php endif; ?>
+        </div>
     </div>
 
     <!-- Summary cards -->
@@ -229,6 +235,36 @@ include '../includes/sidebar.php';
 
 </div>
 </div><!-- /#main-content -->
+
+<!-- Export Modal (for students) -->
+<?php if ($role === 'student'): ?>
+<div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exportModalLabel"><i class="bi bi-file-earmark-excel text-success me-2"></i>Download Attendance</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="export.php" method="GET">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="monthSelect" class="form-label">Select Month</label>
+                        <input type="month" class="form-control" id="monthSelect" name="month" value="<?= date('Y-m') ?>" required>
+                    </div>
+                    <p class="text-muted small mb-0">The report will be downloaded as a CSV file compatible with Microsoft Excel.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success" onclick="setTimeout(() => bootstrap.Modal.getInstance(document.getElementById('exportModal')).hide(), 500);">
+                        <i class="bi bi-download me-1"></i> Download
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
 <?php include '../includes/footer.php'; ?>
 </div><!-- /#content -->
 
