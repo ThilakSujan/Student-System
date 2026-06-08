@@ -22,10 +22,11 @@ function sidebarActive(string $file, string $dir = ''): string {
 
 #sidebar {
     width: 255px;
-    min-height: 100vh;
+    height: 100vh; /* Fixed exactly to viewport height */
     background: linear-gradient(160deg, #0f172a 0%, #1e1b4b 60%, #1a1040 100%);
     flex-shrink: 0;
-    position: relative;
+    position: sticky; /* FIX: Pins sidebar to the screen during body scroll */
+    top: 0;           /* Locks it to the top */
     transition: margin-left 0.3s ease;
     overflow-y: auto;
     overflow-x: hidden;
@@ -433,3 +434,19 @@ function sidebarActive(string $file, string $dir = ''): string {
     </div>
 
 </nav>
+
+<script>
+// Preserve sidebar scroll position across page loads
+document.addEventListener('DOMContentLoaded', function() {
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) {
+        const scrollPos = sessionStorage.getItem('sidebarScrollPos');
+        if (scrollPos) {
+            sidebar.scrollTop = parseInt(scrollPos, 10);
+        }
+        sidebar.addEventListener('scroll', function() {
+            sessionStorage.setItem('sidebarScrollPos', sidebar.scrollTop);
+        }, { passive: true });
+    }
+});
+</script>

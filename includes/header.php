@@ -93,10 +93,9 @@
         }
 
         html, body {
-            height: 100%;
-            width: 100%;
             margin: 0;
             padding: 0;
+            background-color: #f8f9fa; /* Prevents white gaps at the bottom of the page */
         }
 
         /* Sidebar layout */
@@ -108,14 +107,14 @@
 
         #sidebar {
             width: 255px;
-            min-height: 100vh;
+            height: 100vh; /* Fixed exactly to viewport height */
             background-color: #0f172a;
             flex-shrink: 0;
-            position: relative;
+            position: sticky; /* FIX ISSUE 2: Sidebar stays fixed when page scrolls */
+            top: 0;           /* Pins sidebar to the top */
             transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-            overflow-y: auto;
+            overflow-y: auto; /* Internal scrolling if sidebar content is long */
             z-index: 1000;
-            padding-bottom: 30px;
         }
 
         #sidebar.hidden {
