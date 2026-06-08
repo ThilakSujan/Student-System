@@ -331,6 +331,92 @@
 
         <div class="navbar-vr"></div>
 
+        <!-- Notifications bell -->
+        <div class="dropdown">
+            <button class="navbar-icon-btn position-relative" type="button"
+                    id="notifMenuBtn" data-bs-toggle="dropdown" aria-expanded="false" title="Notifications">
+                <i class="bi bi-bell-fill"></i>
+                <?php
+                $notif_role = $_SESSION['role'] ?? '';
+                $notif_count = 0;
+                if ($notif_role === 'student' || $notif_role === 'staff') {
+                    $target = $notif_role === 'student' ? "'Student','Both'" : "'Staff','Both'";
+                    // Requires $mysqli which should be included in the file including navbar.php
+                    if (isset($mysqli)) {
+                        $nc_query = $mysqli->query("SELECT COUNT(*) FROM notifications WHERE status='Active' AND expiry_date >= CURDATE() AND target_audience IN ($target)");
+                        if ($nc_query) $notif_count = $nc_query->fetch_row()[0];
+                    }
+                }
+                if ($notif_count > 0):
+                ?>
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 9px; padding: 3px 5px; transform: translate(-40%, 40%) !important; border: 2px solid #6d28d9;">
+                    <?= $notif_count ?>
+                </span>
+                <?php endif; ?>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end navbar-dropdown" aria-labelledby="notifMenuBtn" style="width: 320px; padding: 0;">
+                <li>
+                    <div class="dropdown-header d-flex justify-content-between align-items-center" style="background:#f8fafc; border-bottom:1px solid #e2e8f0; border-radius: 14px 14px 0 0;">
+                        <span><i class="bi bi-bell me-1"></i> Notifications</span>
+                        <?php if(in_array($notif_role, ['admin','staff'])): ?>
+                        <a href="/student_system/notifications/index.php" style="text-transform:none;font-size:11px;text-decoration:none;"><i class="bi bi-gear"></i> Manage</a>
+                        <?php endif; ?>
+                    </div>
+                </li>
+                <?php
+                if (in_array($notif_role, ['student', 'staff']) && isset($mysqli)):
+                    $n_query = $mysqli->query("SELECT n.*, u.role as sender_role, u.username as sender_name FROM notifications n JOIN users u ON n.created_by = u.id WHERE n.status='Active' AND n.expiry_date >= CURDATE() AND n.target_audience IN ($target) ORDER BY n.created_at DESC LIMIT 4");
+                    if ($n_query && $n_query->num_rows > 0):
+                        while($notif = $n_query->fetch_assoc()):
+                            $sender = $notif['sender_role'] === 'admin' ? 'Management' : 'Staff - ' . htmlspecialchars($notif['sender_name']);
+                ?>
+                <li style="border-bottom: 1px solid #f1f5f9;">
+                    <a href="/student_system/notifications/my_notifications.php" class="dropdown-item" style="flex-direction:column; align-items:start; padding:12px 16px; white-space:normal; text-decoration:none;">
+                        <div class="d-flex justify-content-between w-100 mb-1">
+                            <span style="font-weight:600; font-size:13px; color:#1e293b;"><?= htmlspecialchars($notif['title']) ?></span>
+                            <span style="font-size:10px; color:#94a3b8;"><?= date('M d', strtotime($notif['created_at'])) ?></span>
+                        </div>
+                        <div style="font-size:12px; color:#475569; margin-bottom:6px; line-height:1.4;">
+                            <?= htmlspecialchars(substr($notif['message'], 0, 70)) . (strlen($notif['message']) > 70 ? '...' : '') ?>
+                        </div>
+                        <div style="font-size:10.5px; color:#64748b; font-weight:500;"><i class="bi bi-person-fill me-1"></i><?= $sender ?></div>
+                    </a>
+                </li>
+                <?php
+                        endwhile;
+                ?>
+                <li>
+                    <a href="/student_system/notifications/my_notifications.php" class="dropdown-item text-center" style="justify-content:center; color:#4f46e5; font-weight:600; padding:12px; font-size:13px;">
+                        View All Notifications <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </li>
+                <?php
+                    else:
+                ?>
+                <li>
+                    <div class="dropdown-item text-center text-muted py-5" style="justify-content:center; flex-direction:column; gap:10px;">
+                        <div style="width:40px;height:40px;border-radius:50%;background:#f1f5f9;display:flex;align-items:center;justify-content:center;margin:0 auto;">
+                            <i class="bi bi-bell-slash" style="font-size:18px;color:#94a3b8;width:auto;"></i>
+                        </div>
+                        <span style="font-size:13px;">No new notifications</span>
+                    </div>
+                </li>
+                <?php
+                    endif;
+                elseif ($notif_role === 'admin'):
+                ?>
+                <li>
+                    <div class="dropdown-item text-center py-4" style="justify-content:center;flex-direction:column;gap:12px;">
+                        <span class="text-muted" style="font-size:13px;">Admin notification management</span>
+                        <a href="/student_system/notifications/index.php" class="btn btn-sm" style="background:#4f46e5;color:#fff;font-size:12px;padding:6px 16px;border-radius:6px;text-decoration:none;">
+                            <i class="bi bi-gear-fill me-1"></i> Manage Notifications
+                        </a>
+                    </div>
+                </li>
+                <?php endif; ?>
+            </ul>
+        </div>
+
         <!-- Profile shortcut -->
         <a href="/student_system/profile/view.php" class="navbar-icon-btn" title="My Profile">
             <i class="bi bi-person-badge"></i>

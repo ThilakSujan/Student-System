@@ -283,6 +283,11 @@ function sidebarActive(string $file, string $dir = ''): string {
             <span class="nav-icon"><i class="bi bi-speedometer2"></i></span>
             Dashboard
         </a>
+        <a href="<?= $base ?>/notifications/index.php"
+           class="nav-link <?= sidebarActive('index.php', '/notifications/') ?>">
+            <span class="nav-icon"><i class="bi bi-bell-fill"></i></span>
+            Manage Notifications
+        </a>
 
         <div class="nav-section">Students</div>
         <a href="<?= $base ?>/students/students.php"
