@@ -286,17 +286,27 @@ include '../includes/sidebar.php';
                             <th>Amount Paid</th>
                             <th>Method</th>
                             <th>Date</th>
+                            <?php if ($role === 'admin'): ?>
+                            <th class="text-center">Action</th>
+                            <?php endif; ?>
                         </tr>
                     </thead>
                     <tbody>
                     <?php foreach ($history_rows as $i => $h): ?>
-                        <tr>
+                        <tr id="pay-row-<?= $h['id'] ?>">
                             <td class="text-muted"><?= $i+1 ?></td>
                             <td><span class="badge bg-primary"><?= htmlspecialchars($h['cat_name']) ?></span></td>
                             <td><?= htmlspecialchars($h['academic_year']) ?></td>
                             <td class="fw-bold text-success">₹<?= number_format($h['amount_paid'],2) ?></td>
                             <td><span class="badge bg-secondary"><?= htmlspecialchars($h['payment_mode']) ?></span></td>
                             <td><?= date('d M Y', strtotime($h['payment_date'])) ?></td>
+                            <?php if ($role === 'admin'): ?>
+                            <td class="text-center">
+                                <button class="btn btn-danger btn-sm" onclick="deletePay(<?= (int)$h['id'] ?>)" title="Delete Payment">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                            <?php endif; ?>
                         </tr>
                     <?php endforeach; ?>
                     </tbody>
@@ -318,5 +328,29 @@ $(document).ready(function(){
         lengthMenu: [[5,10,25,50],[5,10,25,50]]
     });
 });
+
+<?php if ($role === 'admin'): ?>
+function deletePay(id) {
+    if (!confirm('Are you sure you want to delete this payment record? This cannot be undone.')) return;
+    
+    fetch('payments.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'action=delete&id=' + id
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (d.success) {
+            window.showToast ? window.showToast('Payment deleted!', 'success') : alert('Payment deleted!');
+            const row = document.getElementById('pay-row-' + id);
+            if (row) row.remove();
+            setTimeout(() => location.reload(), 800); // reload to update totals
+        } else {
+            window.showToast ? window.showToast(d.message || 'Error', 'danger') : alert(d.message || 'Error');
+        }
+    })
+    .catch(() => alert('Unexpected error occurred.'));
+}
+<?php endif; ?>
 </script>
 </div><!-- /#content -->

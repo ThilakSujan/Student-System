@@ -41,8 +41,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delet
 // ── ADD ───────────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add') {
     $student_id  = (int)($_POST['student_id']       ?? 0);
-    $struct_id   = (int)($_POST['fee_assignment_id'] ?? 0);
-    $amount_paid = (float)($_POST['amount_paid']     ?? 0);
+    $struct_ids  = $_POST['fee_assignment_id'] ?? []; // Array from checkboxes
+    $priorities  = $_POST['priority'] ?? []; // Priority array
+    if (!is_array($struct_ids)) {
+        $struct_ids = $struct_ids ? [$struct_ids] : [];
+    }
+
+    // Sort selected structures by priority (lowest number = highest priority)
+    usort($struct_ids, function($a, $b) use ($priorities) {
+        $pa = (int)($priorities[$a] ?? 999);
+        $pb = (int)($priorities[$b] ?? 999);
+        return $pa <=> $pb;
+    });
+    
+    $total_amount_paid = (float)($_POST['amount_paid']     ?? 0);
     $pay_date    = trim($_POST['payment_date']        ?? '');
     $mode        = trim($_POST['payment_mode']        ?? 'Cash');
     $receipt     = trim($_POST['receipt_no']          ?? '');
@@ -52,21 +64,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add')
     $valid_modes = ['Cash', 'Bank Transfer', 'Cheque', 'Online', 'Other'];
     if (!in_array($mode, $valid_modes)) $mode = 'Cash';
 
-    if (!$student_id || !$struct_id || $amount_paid <= 0 || !$pay_date) {
-        $error = "Student, fee structure, amount and payment date are required.";
+    if (!$student_id || empty($struct_ids) || $total_amount_paid <= 0 || !$pay_date) {
+        $error = "Student, at least one fee structure, amount and payment date are required.";
     } else {
-        $stmt = $mysqli->prepare(
-            "INSERT INTO fee_payments
-             (student_id, fee_assignment_id, amount_paid, payment_date, payment_mode, receipt_no, remarks, recorded_by)
-             VALUES (?,?,?,?,?,?,?,?)"
-        );
-        $stmt->bind_param('iidssssi', $student_id, $struct_id, $amount_paid, $pay_date, $mode, $receipt, $remarks, $uid);
-        if ($stmt->execute()) {
+        $remaining = $total_amount_paid;
+        $mysqli->begin_transaction();
+        try {
+            $stmt = $mysqli->prepare(
+                "INSERT INTO fee_payments
+                 (student_id, fee_assignment_id, amount_paid, payment_date, payment_mode, receipt_no, remarks, recorded_by)
+                 VALUES (?,?,?,?,?,?,?,?)"
+            );
+            
+            foreach ($struct_ids as $idx => $sid) {
+                $sid = (int)$sid;
+                if ($remaining <= 0) break;
+                
+                // Get pending amount for this structure for this student
+                $bal_res = $mysqli->query(
+                    "SELECT fs.amount - COALESCE(
+                        (SELECT SUM(amount_paid) FROM fee_payments WHERE fee_assignment_id = fs.id AND student_id = $student_id)
+                    , 0) as pending
+                    FROM fee_structures fs
+                    WHERE fs.id = $sid"
+                );
+                
+                $pending = 0;
+                if ($bal_res && $row = $bal_res->fetch_assoc()) {
+                    $pending = (float)$row['pending'];
+                }
+                
+                $is_last = ($idx === count($struct_ids) - 1);
+                
+                // If there's pending balance, or if it's the last selected item (put any overpayment here)
+                if ($pending > 0 || $is_last) {
+                    $pay_for_this = $is_last ? $remaining : min($pending, $remaining);
+                    
+                    if ($pay_for_this > 0) {
+                        $stmt->bind_param('iidssssi', $student_id, $sid, $pay_for_this, $pay_date, $mode, $receipt, $remarks, $uid);
+                        if (!$stmt->execute()) {
+                            throw new Exception("Error inserting payment: " . $stmt->error);
+                        }
+                        $remaining -= $pay_for_this;
+                    }
+                }
+            }
+            $mysqli->commit();
             $success = "Payment recorded successfully.";
-        } else {
-            $error = "Failed to record payment: " . $mysqli->error;
+        } catch (Exception $e) {
+            $mysqli->rollback();
+            $error = "Failed to record payment: " . $e->getMessage();
         }
-        $stmt->close();
     }
 }
 
@@ -302,31 +350,44 @@ include '../includes/sidebar.php';
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Fee Structure <span class="text-danger">*</span></label>
-                            <select name="fee_assignment_id" class="form-select" required>
-                                <option value="">-- Select Fee Structure --</option>
-                                <?php foreach ($structures as $fs): ?>
-                                    <option value="<?= $fs['id'] ?>">
-                                        <?= htmlspecialchars(
-                                            $fs['cat_name'] . ' – ' . $fs['class_name'] .
-                                            ' (' . $fs['academic_year'] . ') ₹' .
-                                            number_format($fs['amount'], 2)
-                                        ) ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Amount Paid (₹) <span class="text-danger">*</span></label>
+                            <label class="form-label fw-semibold">Total Amount Paid (₹) <span class="text-danger">*</span></label>
                             <input type="number" name="amount_paid" class="form-control"
                                    step="0.01" min="0.01" placeholder="0.00" required>
                         </div>
-                        <div class="col-md-6">
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Fee Structures (Toggle to pay) <span class="text-danger">*</span></label>
+                            <div class="border rounded p-3 shadow-sm" style="max-height: 200px; overflow-y: auto; background:#f8f9fa;">
+                                <?php $def_prio = 1; foreach ($structures as $fs): ?>
+                                    <div class="form-check form-switch mb-3 d-flex align-items-center">
+                                        <input class="form-check-input" type="checkbox" name="fee_assignment_id[]" value="<?= $fs['id'] ?>" id="add_fs_<?= $fs['id'] ?>" style="transform: scale(1.2); margin-right: 10px;">
+                                        <label class="form-check-label flex-grow-1" for="add_fs_<?= $fs['id'] ?>">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <strong><?= htmlspecialchars($fs['cat_name']) ?></strong> 
+                                                    <span class="text-muted" style="font-size:13px;">— <?= htmlspecialchars($fs['class_name']) ?> (<?= htmlspecialchars($fs['academic_year']) ?>)</span>
+                                                </div>
+                                                <span class="badge bg-success rounded-pill px-3">₹<?= number_format($fs['amount'], 2) ?></span>
+                                            </div>
+                                        </label>
+                                        <div style="width: 100px;" class="ms-3" title="Payment Priority (1 pays first)">
+                                            <div class="input-group input-group-sm">
+                                                <span class="input-group-text bg-light"><i class="bi bi-sort-numeric-down"></i></span>
+                                                <input type="number" name="priority[<?= $fs['id'] ?>]" class="form-control text-center" value="<?= $def_prio++ ?>" min="1">
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                            <small class="text-muted"><i class="bi bi-info-circle me-1"></i>If multiple are selected, the total amount paid will be distributed automatically to clear their pending balances.</small>
+                        </div>
+
+                        <div class="col-md-4">
                             <label class="form-label fw-semibold">Payment Date <span class="text-danger">*</span></label>
                             <input type="date" name="payment_date" class="form-control"
                                    value="<?= date('Y-m-d') ?>" required>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label class="form-label fw-semibold">Payment Method</label>
                             <select name="payment_mode" class="form-select">
                                 <option value="Cash">Cash</option>
@@ -336,10 +397,10 @@ include '../includes/sidebar.php';
                                 <option value="Other">Other</option>
                             </select>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label class="form-label fw-semibold">Receipt No.</label>
                             <input type="text" name="receipt_no" class="form-control"
-                                   placeholder="Optional receipt number">
+                                   placeholder="Optional">
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold">Remarks</label>
