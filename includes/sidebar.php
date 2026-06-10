@@ -418,6 +418,23 @@ function sidebarActive(string $file, string $dir = ''): string {
             <span class="nav-icon"><i class="bi bi-building"></i></span>
             Institute Profile
         </a>
+
+        <div class="nav-section">Communication</div>
+        <a href="<?= $base ?>/email/index.php"
+           class="nav-link <?= sidebarActive('index.php', '/email/') ?>">
+            <span class="nav-icon"><i class="bi bi-envelope-check"></i></span>
+            Email Logs
+        </a>
+        <a href="<?= $base ?>/email/preview.php"
+           class="nav-link <?= sidebarActive('preview.php', '/email/') ?>">
+            <span class="nav-icon"><i class="bi bi-eye"></i></span>
+            Email Previewer
+        </a>
+        <a href="<?= $base ?>/email/test.php"
+           class="nav-link <?= sidebarActive('test.php', '/email/') ?>">
+            <span class="nav-icon"><i class="bi bi-send-check"></i></span>
+            Test Email
+        </a>
         <?php endif; ?>
 
     <?php endif; ?>

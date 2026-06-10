@@ -211,6 +211,11 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; margin:0; }
 <div class="action-bar">
     <a href="students.php"><i class="bi bi-arrow-left-circle-fill"></i> Back to Students</a>
     <div class="d-flex gap-2">
+        <?php if (in_array($_SESSION['role'] ?? '', ['admin', 'staff'])): ?>
+        <button onclick="emailReportCard()" class="btn btn-success btn-sm" id="emailRcBtn">
+            <i class="bi bi-envelope me-1"></i> Email Report Card
+        </button>
+        <?php endif; ?>
         <button onclick="window.print()" class="btn btn-outline-light btn-sm">
             <i class="bi bi-printer me-1"></i> Print
         </button>
@@ -219,6 +224,9 @@ body { background:#f0f2f5; font-family:'Segoe UI',sans-serif; margin:0; }
         </button>
     </div>
 </div>
+
+<!-- Email toast notification -->
+<div id="rcEmailToast" style="position:fixed;top:20px;right:20px;z-index:9999;display:none;min-width:300px;" class="alert" role="alert"></div>
 
 <div class="report-wrap">
 <div class="report-card">
@@ -445,6 +453,33 @@ function downloadPDF() {
     bar.style.display = 'none';
     window.print();
     bar.style.display = 'flex';
+}
+
+function emailReportCard() {
+    const btn  = document.getElementById('emailRcBtn');
+    if (!btn) return;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Sending…';
+
+    fetch('email_report_card.php?student_id=<?= $sid ?>')
+        .then(r => r.json())
+        .then(d => {
+            showRcToast(d.message || (d.success ? 'Email sent!' : 'Failed to send.'), d.success ? 'success' : 'danger');
+        })
+        .catch(() => showRcToast('Unexpected error. Please try again.', 'danger'))
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-envelope me-1"></i>Email Report Card';
+        });
+}
+
+function showRcToast(msg, type) {
+    const t = document.getElementById('rcEmailToast');
+    t.className = `alert alert-${type} alert-dismissible fade show`;
+    t.innerHTML = `<i class="bi bi-${type==='success'?'check-circle':'x-circle'} me-1"></i>${msg}
+        <button type="button" class="btn-close" onclick="this.closest('.alert').style.display='none'"></button>`;
+    t.style.display = 'block';
+    setTimeout(() => { t.style.display = 'none'; }, 6000);
 }
 </script>
 </body>

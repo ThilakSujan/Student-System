@@ -2,10 +2,42 @@
 session_start();
 require_once '../config/db.php';
 require_once '../includes/auth.php';
+require_once '../includes/email_service.php';
 
 require_login();
 
-$user_role = $_SESSION['role'];
+$user_role  = $_SESSION['role'];
+$publishMsg = '';
+$publishErr = '';
+
+// ── Handle Publish / Notify actions (admin/staff only) ──────────────────
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($user_role, ['admin','staff'])) {
+    $action    = $_POST['publish_action'] ?? '';
+    $pub_sid   = (int)($_POST['publish_student_id'] ?? 0);
+
+    if ($action === 'publish_one' && $pub_sid > 0) {
+        // Just publish — no email
+        $mysqli->query("UPDATE marks SET published=1, published_at=NOW() WHERE student_id={$pub_sid}");
+        $publishMsg = 'Results published. Use the Notify button to send an email to the student.';
+
+    } elseif ($action === 'notify_one' && $pub_sid > 0) {
+        // Manual email send
+        try {
+            $emailSvc = new EmailService($mysqli);
+            $sent     = $emailSvc->sendMarksPublished($pub_sid);
+            $publishMsg = $sent
+                ? 'Notification email sent successfully.'
+                : 'Email could not be sent — check SMTP config in config/email_config.php.';
+        } catch (Throwable $e) {
+            $publishErr = 'Email error: ' . htmlspecialchars($e->getMessage());
+        }
+
+    } elseif ($action === 'publish_all') {
+        // Just publish all unpublished — no email
+        $mysqli->query("UPDATE marks SET published=1, published_at=NOW() WHERE published=0");
+        $publishMsg = 'All unpublished results have been published. Use the Notify buttons to email individual students.';
+    }
+}
 
 // Build query based on role
 if ($user_role === 'student') {
@@ -121,11 +153,33 @@ include '../includes/sidebar.php';
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2 class="mb-0"><i class="bi bi-graph-up"></i> Marks Management</h2>
                 <?php if (in_array($user_role, ['admin','staff'])): ?>
-                    <a href="add.php" class="btn btn-primary">
-                        <i class="bi bi-plus-circle"></i> Add Marks
-                    </a>
+                    <div class="d-flex gap-2">
+                        <a href="add.php" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Add Marks
+                        </a>
+                        <!-- Publish All Unpublished -->
+                        <form method="POST" onsubmit="return confirm('Publish ALL unpublished results? (No email will be sent — use Notify buttons for that)') ">
+                            <input type="hidden" name="publish_action" value="publish_all">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-check2-all me-1"></i>Publish All Results
+                            </button>
+                        </form>
+                    </div>
                 <?php endif; ?>
             </div>
+
+            <?php if ($publishMsg): ?>
+            <div class="alert alert-success alert-dismissible fade show">
+                <i class="bi bi-check-circle me-1"></i><?= htmlspecialchars($publishMsg) ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <?php endif; ?>
+            <?php if ($publishErr): ?>
+            <div class="alert alert-warning alert-dismissible fade show">
+                <i class="bi bi-exclamation-triangle me-1"></i><?= htmlspecialchars($publishErr) ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <?php endif; ?>
 
             <!-- Marks table -->
             <div class="card">
@@ -145,16 +199,16 @@ include '../includes/sidebar.php';
                         <table id="marksTable" class="table table-hover">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Rank</th>
-                                    <th>Student Name</th>
-                                    <th>Email</th>
-                                    <th>Total Marks</th>
-                                    <th>Percentage</th>
-                                    <th>Grade</th>
-                                    <th>Subjects</th>
-                                    <?php if (in_array($user_role, ['admin','staff'])): ?>
-                                        <th>Actions</th>
-                                    <?php endif; ?>
+                                     <th>Rank</th>
+                                     <th>Student Name</th>
+                                     <th>Email</th>
+                                     <th>Total Marks</th>
+                                     <th>Percentage</th>
+                                     <th>Grade</th>
+                                     <th>Subjects</th>
+                                     <?php if (in_array($user_role, ['admin','staff'])): ?>
+                                         <th>Actions</th>
+                                     <?php endif; ?>
                                 </tr>
                             </thead>
                             <tbody>
@@ -185,14 +239,41 @@ include '../includes/sidebar.php';
                                         </span>
                                     </td>
                                     <td><?= $s['subject_count'] ?></td>
-                                    <?php if (in_array($user_role, ['admin','staff'])): ?>
-                                    <td>
-                                        <a href="student_marks.php?student_id=<?= $s['student_id'] ?>"
-                                           class="btn btn-sm btn-info" title="View Details">
-                                            <i class="bi bi-eye"></i>
-                                        </a>
-                                    </td>
-                                    <?php endif; ?>
+                                     <?php if (in_array($user_role, ['admin','staff'])): ?>
+                                     <td>
+                                         <a href="student_marks.php?student_id=<?= $s['student_id'] ?>"
+                                            class="btn btn-sm btn-info" title="View Details">
+                                             <i class="bi bi-eye"></i>
+                                         </a>
+                                         <?php
+                                         // Check published status
+                                         $pubCheck = $mysqli->query("SELECT MAX(published) as pub FROM marks WHERE student_id={$s['student_id']}");
+                                         $isPub    = $pubCheck && (bool)($pubCheck->fetch_assoc()['pub'] ?? false);
+                                         ?>
+                                         <?php if (!$isPub): ?>
+                                         <form method="POST" class="d-inline ms-1">
+                                             <input type="hidden" name="publish_action" value="publish_one">
+                                             <input type="hidden" name="publish_student_id" value="<?= $s['student_id'] ?>">
+                                             <button type="submit" class="btn btn-sm btn-success"
+                                                 title="Publish Results (no email)"
+                                                 onclick="return confirm('Publish results for <?= htmlspecialchars(addslashes($s['student_name'])) ?>?')">
+                                                 <i class="bi bi-check-circle"></i>
+                                             </button>
+                                         </form>
+                                         <?php else: ?>
+                                         <form method="POST" class="d-inline ms-1">
+                                             <input type="hidden" name="publish_action" value="notify_one">
+                                             <input type="hidden" name="publish_student_id" value="<?= $s['student_id'] ?>">
+                                             <button type="submit" class="btn btn-sm btn-primary"
+                                                 title="Send Email Notification"
+                                                 onclick="return confirm('Send marks notification email to <?= htmlspecialchars(addslashes($s['student_name'])) ?>?')">
+                                                 <i class="bi bi-envelope-arrow-up"></i>
+                                             </button>
+                                         </form>
+                                         <span class="badge bg-success ms-1" title="Results Published"><i class="bi bi-check-circle-fill"></i> Published</span>
+                                         <?php endif; ?>
+                                     </td>
+                                     <?php endif; ?>
                                 </tr>
                                 <?php endforeach; ?>
                             </tbody>

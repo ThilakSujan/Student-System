@@ -3,6 +3,7 @@ session_start();
 require_once '../includes/auth.php';
 require_role(['admin','staff']);
 require_once '../config/db.php';
+require_once '../includes/email_service.php';
 
 // ── Handle bulk form submission ───────────────────────
 $success = $error = '';
@@ -22,15 +23,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
              VALUES (?, ?, ?, ?)
              ON DUPLICATE KEY UPDATE status=VALUES(status), marked_by=VALUES(marked_by)"
         );
-        $ok = true;
+        $ok          = true;
+        $absentIds   = [];
         foreach ($statuses as $student_id => $status) {
             $student_id = (int)$student_id;
             $status     = in_array($status,['Present','Absent']) ? $status : 'Present';
             $stmt->bind_param('issi', $student_id, $date, $status, $marked_by);
-            if (!$stmt->execute()) { $ok = false; }
+            if (!$stmt->execute()) {
+                $ok = false;
+            } elseif ($status === 'Absent') {
+                $absentIds[] = $student_id;
+            }
         }
-        $success = $ok ? "Attendance saved for ".count($statuses)." students on ".date('d M Y',strtotime($date))."."
-                       : "Some records could not be saved.";
+
+        // ── Auto email triggers (non-blocking) ───────────────────────
+        $alertsSent   = 0;
+        $warningsSent = 0;
+        if ($ok && !empty($absentIds)) {
+            try {
+                $emailSvc = new EmailService($mysqli);
+                foreach ($absentIds as $absId) {
+                    // 1. Absence alert for today
+                    if ($emailSvc->sendAttendanceAlert($absId, $date)) {
+                        $alertsSent++;
+                    }
+                    // 2. Low attendance warning if overall % dropped below threshold
+                    if ($emailSvc->sendLowAttendanceAlert($absId)) {
+                        $warningsSent++;
+                    }
+                }
+            } catch (Throwable $e) {
+                error_log('[Attendance Email] ' . $e->getMessage());
+            }
+        }
+
+        $emailNote = '';
+        if ($alertsSent > 0) {
+            $emailNote .= " {$alertsSent} absence alert(s) sent.";
+        }
+        if ($warningsSent > 0) {
+            $emailNote .= " {$warningsSent} low attendance warning(s) sent.";
+        }
+
+        $success = $ok
+            ? "Attendance saved for ".count($statuses)." students on ".date('d M Y',strtotime($date)).".{$emailNote}"
+            : "Some records could not be saved.";
     }
 }
 

@@ -3,6 +3,7 @@ session_start();
 require_once '../includes/auth.php';
 require_role(['admin']);
 require_once '../config/db.php';
+require_once '../includes/email_service.php';
 
 $page_title = "Fee Payments";
 
@@ -111,6 +112,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add')
             }
             $mysqli->commit();
             $success = "Payment recorded successfully.";
+
+            // ── Auto: send fee invoice email (non-blocking) ──────────
+            try {
+                $invoiceRes = $mysqli->query(
+                    "SELECT fp.amount_paid, fp.payment_mode, fp.receipt_no,
+                            fc.name AS cat_name, fs.academic_year
+                     FROM fee_payments fp
+                     JOIN fee_structures fs ON fs.id = fp.fee_assignment_id
+                     JOIN fee_categories fc ON fc.id = fs.category_id
+                     WHERE fp.student_id = {$student_id}
+                     ORDER BY fp.created_at DESC
+                     LIMIT " . count($struct_ids)
+                );
+                $invoiceData = $invoiceRes ? $invoiceRes->fetch_all(MYSQLI_ASSOC) : [];
+                if (!empty($invoiceData)) {
+                    $emailSvc = new EmailService($mysqli);
+                    $sent     = $emailSvc->sendFeeInvoice($student_id, $invoiceData);
+                    $success .= $sent
+                        ? ' Invoice emailed to student/parent.'
+                        : ' (Invoice email skipped — check SMTP config.)';
+                }
+            } catch (Throwable $e) {
+                error_log('[Fee Invoice Email] ' . $e->getMessage());
+            }
+
         } catch (Exception $e) {
             $mysqli->rollback();
             $error = "Failed to record payment: " . $e->getMessage();

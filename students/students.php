@@ -108,6 +108,12 @@ $total_students = mysqli_num_rows($result);
                                         <i class="bi bi-file-earmark-text"></i>
                                     </a>
 
+                                    <!-- Send Mail (admin & staff only) -->
+                                    <button type="button" class="btn btn-primary btn-sm" title="Send Email"
+                                            onclick="openSendMail(<?= $row['id'] ?>, '<?= htmlspecialchars(addslashes($row['student_name'])) ?>', '<?= htmlspecialchars(addslashes($row['email'])) ?>')">
+                                        <i class="bi bi-envelope"></i>
+                                    </button>
+
                                     <!-- Delete -->
                                     <a href="students.php?delete=<?= $row['id'] ?>"
                                        class="btn btn-danger btn-sm"
@@ -121,15 +127,11 @@ $total_students = mysqli_num_rows($result);
                         </tbody>
                     </table>
                 </div>
-
-
             <?php endif; ?>
         </div>
     </div>
 
 </div><!-- /#main-content -->
-<?php require '../includes/footer.php'; ?>
-</div><!-- /#content -->
 
 <script>
 $(document).ready(function () {
@@ -156,7 +158,111 @@ $(document).on('change', '.student-checkbox', function () {
         $('#selectAll').prop('checked', true);
     }
 });
+</script>
 
+<?php require '../includes/footer.php'; ?>
+</div><!-- /#content -->
+
+<!-- ══ Send Mail Modal ══════════════════════════════════════════════ -->
+<div class="modal fade" id="sendMailModal" tabindex="-1" aria-labelledby="sendMailModalLabel">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header" style="background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff;">
+        <h5 class="modal-title" id="sendMailModalLabel">
+          <i class="bi bi-envelope-paper me-2"></i>Send Email
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="mailAlertArea"></div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Student</label>
+          <input type="text" id="mailStudentName" class="form-control bg-light" readonly>
+          <input type="hidden" id="mailStudentId">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Recipient Email <span class="text-danger">*</span></label>
+          <input type="email" id="mailRecipient" class="form-control" placeholder="student@example.com" required>
+          <small class="text-muted">Pre-filled with student email. You may change to parent email if needed.</small>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Subject <span class="text-danger">*</span></label>
+          <input type="text" id="mailSubject" class="form-control" placeholder="Enter email subject..." required maxlength="500">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Message <span class="text-danger">*</span></label>
+          <textarea id="mailMessage" class="form-control" rows="7" placeholder="Type your message here..." required></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn-primary btn" id="sendMailBtn" onclick="submitSendMail()">
+          <i class="bi bi-send me-1"></i>Send Email
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function openSendMail(studentId, studentName, studentEmail) {
+    document.getElementById('mailStudentId').value    = studentId;
+    document.getElementById('mailStudentName').value  = studentName;
+    document.getElementById('mailRecipient').value    = studentEmail;
+    document.getElementById('mailSubject').value      = '';
+    document.getElementById('mailMessage').value      = '';
+    document.getElementById('mailAlertArea').innerHTML= '';
+    new bootstrap.Modal(document.getElementById('sendMailModal')).show();
+}
+
+function submitSendMail() {
+    const recipient = document.getElementById('mailRecipient').value.trim();
+    const subject   = document.getElementById('mailSubject').value.trim();
+    const message   = document.getElementById('mailMessage').value.trim();
+    const studentId = document.getElementById('mailStudentId').value;
+
+    if (!recipient || !subject || !message) {
+        showMailAlert('Please fill in all required fields.', 'warning');
+        return;
+    }
+
+    const btn = document.getElementById('sendMailBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sending…';
+
+    const formData = new FormData();
+    formData.append('student_id',     studentId);
+    formData.append('recipient_email', recipient);
+    formData.append('subject',         subject);
+    formData.append('message',         message);
+
+    fetch('send_mail.php', { method: 'POST', body: formData })
+        .then(r => r.json())
+        .then(d => {
+            if (d.success) {
+                showMailAlert(d.message, 'success');
+                setTimeout(() => {
+                    bootstrap.Modal.getInstance(document.getElementById('sendMailModal')).hide();
+                    if (window.showToast) window.showToast(d.message, 'success');
+                }, 1200);
+            } else {
+                showMailAlert(d.message || 'Failed to send email.', 'danger');
+            }
+        })
+        .catch(() => showMailAlert('Unexpected error. Please try again.', 'danger'))
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-send me-1"></i>Send Email';
+        });
+}
+
+function showMailAlert(msg, type) {
+    document.getElementById('mailAlertArea').innerHTML =
+        `<div class="alert alert-${type} alert-dismissible fade show">
+            <i class="bi bi-${type==='success'?'check-circle':'exclamation-circle'} me-1"></i>${msg}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+         </div>`;
+}
 
 <?php
 // Inject toast notification

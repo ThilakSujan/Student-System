@@ -12,6 +12,8 @@ $success = "";
 if (isset($_POST['save_student'])) {
     $student_name = trim($_POST['student_name']);
     $email = trim($_POST['email']);
+    $parent_name  = trim($_POST['parent_name']  ?? '');
+    $parent_email = trim($_POST['parent_email'] ?? '');
     $phone = trim($_POST['phone']);
     $gender = $_POST['gender'] ?? '';
     $department = $_POST['department'] ?? '';
@@ -23,6 +25,8 @@ if (isset($_POST['save_student'])) {
         $error = "Name, email, and phone are required.";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = "Please enter a valid email address.";
+    } elseif (!empty($parent_email) && !filter_var($parent_email, FILTER_VALIDATE_EMAIL)) {
+        $error = "Please enter a valid parent/guardian email address.";
     } elseif (!preg_match('/^[0-9\-\+\s\(\)]+$/', $phone) || strlen(preg_replace('/[^0-9]/', '', $phone)) < 10) {
         $error = "Please enter a valid phone number (minimum 10 digits).";
     } elseif (empty($gender)) {
@@ -42,10 +46,12 @@ if (isset($_POST['save_student'])) {
             $error = "Email already exists for another student.";
         } else {
             $skills = implode(",", array_map('trim', $skills_selected));
+            $pe = mysqli_real_escape_string($conn, $parent_email);
+            $pn = mysqli_real_escape_string($conn, $parent_name);
             $query = "INSERT INTO students
-                (student_name, email, phone, gender, department, skills, dob, status)
+                (student_name, email, parent_name, parent_email, phone, gender, department, skills, dob, status)
                 VALUES
-                ('$student_name','$email','$phone','$gender','$department','$skills','$dob','Active')";
+                ('$student_name','$email','$pn','$pe','$phone','$gender','$department','$skills','$dob','Active')";
 
             if (mysqli_query($conn, $query)) {
                 $success = "Student added successfully!";
@@ -111,6 +117,23 @@ if (isset($_POST['save_student'])) {
                                        value="<?php echo htmlspecialchars($email ?? ''); ?>"
                                        placeholder="student@example.com">
                                 <small class="text-muted">Must be unique and valid</small>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Parent/Guardian Name</label>
+                                <input type="text" name="parent_name" class="form-control"
+                                       value="<?php echo htmlspecialchars($parent_name ?? ''); ?>"
+                                       placeholder="Parent or guardian full name">
+                                <small class="text-muted">Optional</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Parent/Guardian Email</label>
+                                <input type="email" name="parent_email" class="form-control"
+                                       value="<?php echo htmlspecialchars($parent_email ?? ''); ?>"
+                                       placeholder="parent@example.com">
+                                <small class="text-muted">Absence & fee alerts will be sent here if provided</small>
                             </div>
                         </div>
 
