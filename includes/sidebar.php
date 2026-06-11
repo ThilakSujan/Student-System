@@ -413,6 +413,23 @@ function sidebarActive(string $file, string $dir = ''): string {
             <span class="nav-icon"><i class="bi bi-shield-lock"></i></span>
             User Management
         </a>
+        <?php
+        // Show pending approval count badge
+        $pendingCount = 0;
+        if (isset($mysqli)) {
+            $pcRes = $mysqli->query("SELECT COUNT(*) AS c FROM users WHERE account_status='Pending'");
+            if ($pcRes) $pendingCount = (int)$pcRes->fetch_assoc()['c'];
+        }
+        ?>
+        <a href="<?= $base ?>/admin/approvals.php"
+           class="nav-link <?= sidebarActive('approvals.php') ?>"
+           style="<?= $pendingCount > 0 ? 'color:#fbbf24;' : '' ?>">
+            <span class="nav-icon"><i class="bi bi-person-check-fill"></i></span>
+            Pending Approvals
+            <?php if ($pendingCount > 0): ?>
+                <span class="badge bg-danger ms-auto" style="font-size:10px;"><?= $pendingCount ?></span>
+            <?php endif; ?>
+        </a>
         <a href="<?= $base ?>/institute/index.php"
            class="nav-link <?= sidebarActive('index.php', '/institute/') ?>">
             <span class="nav-icon"><i class="bi bi-building"></i></span>

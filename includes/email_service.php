@@ -444,6 +444,142 @@ class EmailService
         );
     }
 
+    // ── Approval Workflow Emails ──────────────────────────────────────
+
+    /**
+     * Send "Registration Received – Pending Approval" email to the new user.
+     */
+    public function sendRegistrationPending(string $toEmail, string $username): bool
+    {
+        if (!$this->isValidEmail($toEmail)) return false;
+        $institute    = $this->getInstitute();
+        $instName     = $institute['institute_name'] ?? 'Student Management System';
+        $uname        = htmlspecialchars($username, ENT_QUOTES, 'UTF-8');
+
+        $html = <<<HTML
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f4f6f9;font-family:'Segoe UI',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6f9;padding:30px 0;">
+<tr><td align="center">
+<table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+  <tr><td style="background:linear-gradient(135deg,#1e293b,#334155);border-radius:12px 12px 0 0;padding:32px 40px;text-align:center;">
+    <div style="font-size:40px;margin-bottom:10px;">📋</div>
+    <h1 style="color:#fff;margin:0;font-size:22px;font-weight:700;">Registration Received</h1>
+    <p style="color:rgba(255,255,255,0.55);margin:8px 0 0;font-size:13px;">{$instName}</p>
+  </td></tr>
+  <tr><td style="height:4px;background:linear-gradient(90deg,#f59e0b,#d97706);"></td></tr>
+  <tr><td style="background:#fff;padding:36px 40px;">
+    <p style="color:#374151;font-size:15px;margin:0 0 16px;">Dear <strong>{$uname}</strong>,</p>
+    <p style="color:#374151;font-size:14px;line-height:1.7;margin:0 0 24px;">
+      Thank you for registering on the <strong>{$instName}</strong> portal.<br>
+      Your account has been created and is currently <strong>pending administrator review</strong>.
+    </p>
+    <table width="100%" cellpadding="0" cellspacing="0"><tr><td style="background:#fffbeb;border:1px solid #fcd34d;border-radius:10px;padding:18px 22px;">
+      <p style="margin:0;font-size:14px;color:#92400e;line-height:1.6;">
+        ⏳ <strong>What happens next?</strong><br>
+        An administrator will review your registration and either approve or reject it.
+        You will receive an email notification once a decision has been made.
+      </p>
+    </td></tr></table>
+  </td></tr>
+  <tr><td style="background:#f8fafc;border-top:1px solid #e5e7eb;border-radius:0 0 12px 12px;padding:20px 40px;text-align:center;">
+    <p style="color:#9ca3af;font-size:12px;margin:0;">{$instName} — Student Management System<br>This is an automated message. Please do not reply.</p>
+  </td></tr>
+</table></td></tr></table>
+</body></html>
+HTML;
+        return $this->sendEmail($toEmail, "Registration Received — {$instName}", $html, 'custom', 0);
+    }
+
+    /**
+     * Send "Account Approved" email to the user after admin approves.
+     */
+    public function sendApprovalEmail(string $toEmail, string $username): bool
+    {
+        if (!$this->isValidEmail($toEmail)) return false;
+        $institute    = $this->getInstitute();
+        $instName     = $institute['institute_name'] ?? 'Student Management System';
+        $uname        = htmlspecialchars($username, ENT_QUOTES, 'UTF-8');
+        $loginUrl     = 'http://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . '/student_system/auth/login.php';
+
+        $html = <<<HTML
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f4f6f9;font-family:'Segoe UI',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6f9;padding:30px 0;">
+<tr><td align="center">
+<table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+  <tr><td style="background:linear-gradient(135deg,#1e293b,#334155);border-radius:12px 12px 0 0;padding:32px 40px;text-align:center;">
+    <div style="font-size:40px;margin-bottom:10px;">✅</div>
+    <h1 style="color:#fff;margin:0;font-size:22px;font-weight:700;">Account Approved!</h1>
+    <p style="color:rgba(255,255,255,0.55);margin:8px 0 0;font-size:13px;">{$instName}</p>
+  </td></tr>
+  <tr><td style="height:4px;background:linear-gradient(90deg,#22c55e,#16a34a);"></td></tr>
+  <tr><td style="background:#fff;padding:36px 40px;">
+    <p style="color:#374151;font-size:15px;margin:0 0 16px;">Dear <strong>{$uname}</strong>,</p>
+    <p style="color:#374151;font-size:14px;line-height:1.7;margin:0 0 24px;">
+      Great news! Your registration for <strong>{$instName}</strong> has been <strong style="color:#16a34a;">approved</strong>.<br>
+      Your account is now active and you can sign in immediately.
+    </p>
+    <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:10px 0 24px;">
+      <a href="{$loginUrl}" style="background:#1e293b;color:#fff;text-decoration:none;padding:14px 36px;border-radius:10px;font-weight:600;font-size:15px;display:inline-block;">
+        🔐 Sign In Now
+      </a>
+    </td></tr></table>
+    <p style="color:#6b7280;font-size:13px;margin:0;">If the button doesn't work, copy this link: <a href="{$loginUrl}" style="color:#3b82f6;">{$loginUrl}</a></p>
+  </td></tr>
+  <tr><td style="background:#f8fafc;border-top:1px solid #e5e7eb;border-radius:0 0 12px 12px;padding:20px 40px;text-align:center;">
+    <p style="color:#9ca3af;font-size:12px;margin:0;">{$instName} — Student Management System<br>This is an automated message. Please do not reply.</p>
+  </td></tr>
+</table></td></tr></table>
+</body></html>
+HTML;
+        return $this->sendEmail($toEmail, "Account Approved — {$instName}", $html, 'custom', 0);
+    }
+
+    /**
+     * Send "Registration Rejected" email to the user.
+     */
+    public function sendRejectionEmail(string $toEmail, string $username, string $reason = ''): bool
+    {
+        if (!$this->isValidEmail($toEmail)) return false;
+        $institute    = $this->getInstitute();
+        $instName     = $institute['institute_name'] ?? 'Student Management System';
+        $uname        = htmlspecialchars($username, ENT_QUOTES, 'UTF-8');
+        $reasonHtml   = $reason
+            ? '<p style="color:#374151;font-size:14px;margin:16px 0 0;"><strong>Reason:</strong> ' . htmlspecialchars($reason, ENT_QUOTES, 'UTF-8') . '</p>'
+            : '';
+
+        $html = <<<HTML
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f4f6f9;font-family:'Segoe UI',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6f9;padding:30px 0;">
+<tr><td align="center">
+<table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+  <tr><td style="background:linear-gradient(135deg,#1e293b,#334155);border-radius:12px 12px 0 0;padding:32px 40px;text-align:center;">
+    <div style="font-size:40px;margin-bottom:10px;">❌</div>
+    <h1 style="color:#fff;margin:0;font-size:22px;font-weight:700;">Registration Not Approved</h1>
+    <p style="color:rgba(255,255,255,0.55);margin:8px 0 0;font-size:13px;">{$instName}</p>
+  </td></tr>
+  <tr><td style="height:4px;background:linear-gradient(90deg,#ef4444,#dc2626);"></td></tr>
+  <tr><td style="background:#fff;padding:36px 40px;">
+    <p style="color:#374151;font-size:15px;margin:0 0 16px;">Dear <strong>{$uname}</strong>,</p>
+    <p style="color:#374151;font-size:14px;line-height:1.7;margin:0;">
+      We regret to inform you that your registration request for <strong>{$instName}</strong> has not been approved at this time.
+    </p>
+    {$reasonHtml}
+    <p style="color:#374151;font-size:14px;line-height:1.7;margin:20px 0 0;">
+      If you believe this is an error or need further clarification, please contact the system administrator directly.
+    </p>
+  </td></tr>
+  <tr><td style="background:#f8fafc;border-top:1px solid #e5e7eb;border-radius:0 0 12px 12px;padding:20px 40px;text-align:center;">
+    <p style="color:#9ca3af;font-size:12px;margin:0;">{$instName} — Student Management System<br>This is an automated message. Please do not reply.</p>
+  </td></tr>
+</table></td></tr></table>
+</body></html>
+HTML;
+        return $this->sendEmail($toEmail, "Registration Update — {$instName}", $html, 'custom', 0);
+    }
+
     // ── Core send method ──────────────────────────────────────────────
 
     /**

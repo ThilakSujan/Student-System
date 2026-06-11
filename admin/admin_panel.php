@@ -69,7 +69,22 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <h4 class="mb-0">User Management</h4>
             <small class="text-muted">All registered users in the system</small>
         </div>
-        <span class="badge bg-primary fs-6"><?php echo count($users); ?> Total Users</span>
+        <div class="d-flex gap-2 align-items-center">
+            <?php
+            $pendingRes = $pdo->query("SELECT COUNT(*) FROM users WHERE account_status='Pending'");
+            $pendingCnt = (int)$pendingRes->fetchColumn();
+            if ($pendingCnt > 0):
+            ?>
+            <a href="approvals.php?status=Pending" class="btn btn-warning btn-sm fw-semibold">
+                <i class="bi bi-hourglass-split me-1"></i>
+                <?= $pendingCnt ?> Pending Approval<?= $pendingCnt > 1 ? 's' : '' ?>
+            </a>
+            <?php endif; ?>
+            <a href="approvals.php" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-person-check me-1"></i>Approvals Dashboard
+            </a>
+            <span class="badge bg-primary fs-6"><?php echo count($users); ?> Total Users</span>
+        </div>
     </div>
 
     <?php if ($success): ?>

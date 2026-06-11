@@ -7,9 +7,11 @@ if (isset($_SESSION['user_id'])) {
 }
 
 include '../config/db_pdo.php';
+include '../config/db.php';       // $mysqli for EmailService
 
 $error   = "";
 $success = "";
+$isPending = false; // tracks whether to show pending message vs instant-login message
 
 if (isset($_POST['register'])) {
     $username         = trim($_POST['username']);
@@ -34,13 +36,57 @@ if (isset($_POST['register'])) {
         } else {
             $countStmt = $pdo->query("SELECT COUNT(*) FROM users");
             $userCount = $countStmt->fetchColumn();
-            $role      = ($userCount == 0) ? 'admin' : 'student';
-            $hashed    = password_hash($password, PASSWORD_DEFAULT);
 
-            $pdo->prepare("INSERT INTO users (username, email, password, role) VALUES (:u, :e, :p, :r)")
-                ->execute([':u' => $username, ':e' => $email, ':p' => $hashed, ':r' => $role]);
+            // First user gets admin + auto-approved; subsequent users get pending
+            $isFirstUser     = ($userCount == 0);
+            $role            = $isFirstUser ? 'admin' : 'staff';
+            $account_status  = $isFirstUser ? 'Approved' : 'Pending';
+            $hashed          = password_hash($password, PASSWORD_DEFAULT);
 
-            $success = "Account created successfully! You can now sign in.";
+            $insertStmt = $pdo->prepare(
+                "INSERT INTO users (username, email, password, role, account_status)
+                 VALUES (:u, :e, :p, :r, :s)"
+            );
+            $insertStmt->execute([
+                ':u' => $username,
+                ':e' => $email,
+                ':p' => $hashed,
+                ':r' => $role,
+                ':s' => $account_status,
+            ]);
+
+            $newUserId = (int)$pdo->lastInsertId();
+
+            // Send notification email
+            try {
+                require_once '../includes/email_service.php';
+                $emailSvc = new EmailService($mysqli);
+                if ($isFirstUser) {
+                    // Admin needs no pending email — they can log in immediately
+                } else {
+                    $emailSvc->sendRegistrationPending($email, $username);
+                }
+            } catch (Throwable $e) {
+                // Email failure must never break registration
+            }
+
+            // Audit log
+            $logDir = __DIR__ . '/logs';
+            if (!is_dir($logDir)) mkdir($logDir, 0755, true);
+            $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+            file_put_contents(
+                $logDir . '/approval.log',
+                '[' . date('Y-m-d H:i:s') . "] [$ip] REGISTRATION_SUBMITTED | user_id=$newUserId | username=$username | email=$email | status=$account_status\n",
+                FILE_APPEND | LOCK_EX
+            );
+
+            if ($isFirstUser) {
+                $success = "Admin account created successfully! You can now sign in.";
+                $isPending = false;
+            } else {
+                $success   = "Registration submitted successfully. Your account is pending administrator approval. You will be able to login after approval.";
+                $isPending = true;
+            }
         }
     }
 }
@@ -495,10 +541,22 @@ if (isset($_POST['register'])) {
         <?php endif; ?>
 
         <?php if ($success): ?>
-            <div class="alert alert-success border-0 py-2 mb-3" style="background:#f0fdf4; color:#15803d; border-radius:10px; font-size:0.85rem;">
-                <i class="bi bi-check-circle-fill me-2"></i> <?= htmlspecialchars($success) ?>
-                <a href="login.php" class="fw-bold text-decoration-none ms-1">Login here →</a>
-            </div>
+            <?php if ($isPending): ?>
+                <div class="mb-3" style="background:#fffbeb;border:1px solid #fcd34d;border-radius:10px;padding:14px 18px;">
+                    <div class="d-flex align-items-start gap-2">
+                        <i class="bi bi-hourglass-split" style="color:#d97706;font-size:1.2rem;margin-top:2px;flex-shrink:0;"></i>
+                        <div>
+                            <div style="font-weight:700;color:#92400e;font-size:0.9rem;margin-bottom:4px;">Registration Submitted!</div>
+                            <div style="color:#92400e;font-size:0.83rem;line-height:1.5;"><?= htmlspecialchars($success) ?></div>
+                        </div>
+                    </div>
+                </div>
+            <?php else: ?>
+                <div class="alert alert-success border-0 py-2 mb-3" style="background:#f0fdf4; color:#15803d; border-radius:10px; font-size:0.85rem;">
+                    <i class="bi bi-check-circle-fill me-2"></i> <?= htmlspecialchars($success) ?>
+                    <a href="login.php" class="fw-bold text-decoration-none ms-1">Login here →</a>
+                </div>
+            <?php endif; ?>
         <?php endif; ?>
 
         <form method="POST" action="register.php">
