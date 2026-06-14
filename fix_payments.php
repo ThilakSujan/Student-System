@@ -1,49 +1,49 @@
-<?php
+<?php file_put_contents("c:\\xampp\\htdocs\\student_system\\fee\\payments.php", '<?php
 session_start();
-require_once '../includes/auth.php';
-require_role(['admin']);
-require_once '../config/db.php';
-require_once '../includes/email_service.php';
+require_once \'../includes/auth.php\';
+require_role([\'admin\']);
+require_once \'../config/db.php\';
+require_once \'../includes/email_service.php\';
 
 $page_title = "Fee Payments";
 
-$success = '';
-$error   = '';
+$success = \'\';
+$error   = \'\';
 
 // Fetch fee structures for the dropdown
 $structs_r = $mysqli->query(
     "SELECT fs.id, fc.name AS cat_name, fs.academic_year, fs.amount,
-            COALESCE(cl.class_name, 'All Classes') AS class_name
+            COALESCE(cl.class_name, \'All Classes\') AS class_name
      FROM fee_structures fs
      JOIN fee_categories fc ON fc.id = fs.category_id
      LEFT JOIN classes cl   ON cl.id = fs.class_id
-     WHERE fs.status = 'Active'
+     WHERE fs.status = \'Active\'
      ORDER BY fc.name, fs.academic_year"
 );
 $structures = $structs_r ? $structs_r->fetch_all(MYSQLI_ASSOC) : [];
 
 $students_r = $mysqli->query(
-    "SELECT id, student_name FROM students WHERE status = 'Active' ORDER BY student_name"
+    "SELECT id, student_name FROM students WHERE status = \'Active\' ORDER BY student_name"
 );
 $students = $students_r ? $students_r->fetch_all(MYSQLI_ASSOC) : [];
 
 // ── DELETE (AJAX) ─────────────────────────────────────────────
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delete') {
-    header('Content-Type: application/json');
-    $del_id = (int)($_POST['id'] ?? 0);
+if ($_SERVER[\'REQUEST_METHOD\'] === \'POST\' && ($_POST[\'action\'] ?? \'\') === \'delete\') {
+    header(\'Content-Type: application/json\');
+    $del_id = (int)($_POST[\'id\'] ?? 0);
     if ($del_id && $mysqli->query("DELETE FROM fee_payments WHERE id = $del_id")) {
-        echo json_encode(['success' => true]);
+        echo json_encode([\'success\' => true]);
     } else {
-        echo json_encode(['success' => false, 'message' => $mysqli->error ?: 'Invalid request.']);
+        echo json_encode([\'success\' => false, \'message\' => $mysqli->error ?: \'Invalid request.\']);
     }
     exit;
 }
 
 // ── ADD ───────────────────────────────────────────────────────
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add') {
-    $student_id  = (int)($_POST['student_id']       ?? 0);
-    $struct_ids  = $_POST['fee_assignment_id'] ?? []; // Array from checkboxes
-    $priorities  = $_POST['priority'] ?? []; // Priority array
+if ($_SERVER[\'REQUEST_METHOD\'] === \'POST\' && ($_POST[\'action\'] ?? \'\') === \'add\') {
+    $student_id  = (int)($_POST[\'student_id\']       ?? 0);
+    $struct_ids  = $_POST[\'fee_assignment_id\'] ?? []; // Array from checkboxes
+    $priorities  = $_POST[\'priority\'] ?? []; // Priority array
     if (!is_array($struct_ids)) {
         $struct_ids = $struct_ids ? [$struct_ids] : [];
     }
@@ -55,15 +55,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add')
         return $pa <=> $pb;
     });
     
-    $total_amount_paid = (float)($_POST['amount_paid']     ?? 0);
-    $pay_date    = trim($_POST['payment_date']        ?? '');
-    $mode        = trim($_POST['payment_mode']        ?? 'Cash');
-    $receipt     = trim($_POST['receipt_no']          ?? '');
-    $remarks     = trim($_POST['remarks']             ?? '');
-    $uid         = (int)($_SESSION['user_id']         ?? 0);
+    $total_amount_paid = (float)($_POST[\'amount_paid\']     ?? 0);
+    $pay_date    = trim($_POST[\'payment_date\']        ?? \'\');
+    $mode        = trim($_POST[\'payment_mode\']        ?? \'Cash\');
+    $receipt     = trim($_POST[\'receipt_no\']          ?? \'\');
+    $remarks     = trim($_POST[\'remarks\']             ?? \'\');
+    $uid         = (int)($_SESSION[\'user_id\']         ?? 0);
 
-    $valid_modes = ['Cash', 'Bank Transfer', 'Cheque', 'Online', 'Other'];
-    if (!in_array($mode, $valid_modes)) $mode = 'Cash';
+    $valid_modes = [\'Cash\', \'Bank Transfer\', \'Cheque\', \'Online\', \'Other\'];
+    if (!in_array($mode, $valid_modes)) $mode = \'Cash\';
 
     if (!$student_id || empty($struct_ids) || $total_amount_paid <= 0 || !$pay_date) {
         $error = "Student, at least one fee structure, amount and payment date are required.";
@@ -92,17 +92,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add')
                 
                 $pending = 0;
                 if ($bal_res && $row = $bal_res->fetch_assoc()) {
-                    $pending = (float)$row['pending'];
+                    $pending = (float)$row[\'pending\'];
                 }
                 
                 $is_last = ($idx === count($struct_ids) - 1);
                 
-                // If there's pending balance, or if it's the last selected item (put any overpayment here)
+                // If there\'s pending balance, or if it\'s the last selected item (put any overpayment here)
                 if ($pending > 0 || $is_last) {
                     $pay_for_this = $is_last ? $remaining : min($pending, $remaining);
                     
                     if ($pay_for_this > 0) {
-                        $stmt->bind_param('iidssssi', $student_id, $sid, $pay_for_this, $pay_date, $mode, $receipt, $remarks, $uid);
+                        $stmt->bind_param(\'iidssssi\', $student_id, $sid, $pay_for_this, $pay_date, $mode, $receipt, $remarks, $uid);
                         if (!$stmt->execute()) {
                             throw new Exception("Error inserting payment: " . $stmt->error);
                         }
@@ -130,11 +130,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add')
                     $emailSvc = new EmailService($mysqli);
                     $sent     = $emailSvc->sendFeeInvoice($student_id, $invoiceData);
                     $success .= $sent
-                        ? ' Invoice emailed to student/parent.'
-                        : ' (Invoice email skipped — check SMTP config.)';
+                        ? \' Invoice emailed to student/parent.\'
+                        : \' (Invoice email skipped — check SMTP config.)\';
                 }
             } catch (Throwable $e) {
-                error_log('[Fee Invoice Email] ' . $e->getMessage());
+                error_log(\'[Fee Invoice Email] \' . $e->getMessage());
             }
 
         } catch (Exception $e) {
@@ -145,18 +145,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add')
 }
 
 // ── EDIT ──────────────────────────────────────────────────────
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'edit') {
-    $edit_id     = (int)($_POST['edit_id']           ?? 0);
-    $student_id  = (int)($_POST['student_id']        ?? 0);
-    $struct_id   = (int)($_POST['fee_assignment_id'] ?? 0);
-    $amount_paid = (float)($_POST['amount_paid']     ?? 0);
-    $pay_date    = trim($_POST['payment_date']        ?? '');
-    $mode        = trim($_POST['payment_mode']        ?? 'Cash');
-    $receipt     = trim($_POST['receipt_no']          ?? '');
-    $remarks     = trim($_POST['remarks']             ?? '');
+if ($_SERVER[\'REQUEST_METHOD\'] === \'POST\' && ($_POST[\'action\'] ?? \'\') === \'edit\') {
+    $edit_id     = (int)($_POST[\'edit_id\']           ?? 0);
+    $student_id  = (int)($_POST[\'student_id\']        ?? 0);
+    $struct_id   = (int)($_POST[\'fee_assignment_id\'] ?? 0);
+    $amount_paid = (float)($_POST[\'amount_paid\']     ?? 0);
+    $pay_date    = trim($_POST[\'payment_date\']        ?? \'\');
+    $mode        = trim($_POST[\'payment_mode\']        ?? \'Cash\');
+    $receipt     = trim($_POST[\'receipt_no\']          ?? \'\');
+    $remarks     = trim($_POST[\'remarks\']             ?? \'\');
 
-    $valid_modes = ['Cash', 'Bank Transfer', 'Cheque', 'Online', 'Other'];
-    if (!in_array($mode, $valid_modes)) $mode = 'Cash';
+    $valid_modes = [\'Cash\', \'Bank Transfer\', \'Cheque\', \'Online\', \'Other\'];
+    if (!in_array($mode, $valid_modes)) $mode = \'Cash\';
 
     if (!$edit_id || !$student_id || !$struct_id || $amount_paid <= 0 || !$pay_date) {
         $error = "All required fields must be filled.";
@@ -167,7 +167,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'edit'
                  payment_mode=?, receipt_no=?, remarks=?
              WHERE id=?"
         );
-        $stmt->bind_param('iidsssi', $student_id, $struct_id, $amount_paid, $pay_date, $mode, $receipt, $remarks, $edit_id);
+        $stmt->bind_param(\'iidsssi\', $student_id, $struct_id, $amount_paid, $pay_date, $mode, $receipt, $remarks, $edit_id);
         if ($stmt->execute()) {
             $success = "Payment updated successfully.";
         } else {
@@ -178,20 +178,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'edit'
 }
 
 // ── Fetch all payments with Filters ───────────────────────────
-$from_date = $_GET['from_date'] ?? '';
-$to_date = $_GET['to_date'] ?? '';
-$payment_mode = $_GET['payment_mode'] ?? '';
-$category_id = $_GET['category_id'] ?? '';
+$from_date = $_GET[\'from_date\'] ?? \'\';
+$to_date = $_GET[\'to_date\'] ?? \'\';
+$payment_mode = $_GET[\'payment_mode\'] ?? \'\';
+$category_id = $_GET[\'category_id\'] ?? \'\';
 
 $where = ["1=1"];
-if ($from_date) $where[] = "fp.payment_date >= '" . $mysqli->real_escape_string($from_date) . "'";
-if ($to_date) $where[] = "fp.payment_date <= '" . $mysqli->real_escape_string($to_date) . "'";
-if ($payment_mode) $where[] = "fp.payment_mode = '" . $mysqli->real_escape_string($payment_mode) . "'";
-if ($category_id) $where[] = "fc.id = '" . $mysqli->real_escape_string($category_id) . "'";
+if ($from_date) $where[] = "fp.payment_date >= \'" . $mysqli->real_escape_string($from_date) . "\'";
+if ($to_date) $where[] = "fp.payment_date <= \'" . $mysqli->real_escape_string($to_date) . "\'";
+if ($payment_mode) $where[] = "fp.payment_mode = \'" . $mysqli->real_escape_string($payment_mode) . "\'";
+if ($category_id) $where[] = "fc.id = \'" . $mysqli->real_escape_string($category_id) . "\'";
 
 $result = $mysqli->query(
     "SELECT fp.*, s.student_name, fc.name AS cat_name, fs.academic_year, fs.amount AS fee_amount,
-            COALESCE(cl.class_name, 'All Classes') AS class_name,
+            COALESCE(cl.class_name, \'All Classes\') AS class_name,
             u.username AS recorded_by_name
      FROM fee_payments fp
      JOIN students s         ON s.id  = fp.student_id
@@ -199,7 +199,7 @@ $result = $mysqli->query(
      JOIN fee_categories fc  ON fc.id = fs.category_id
      LEFT JOIN classes cl    ON cl.id = fs.class_id
      LEFT JOIN users u       ON u.id  = fp.recorded_by
-     WHERE " . implode(' AND ', $where) . "
+     WHERE " . implode(\' AND \', $where) . "
      ORDER BY fp.payment_date DESC, fp.created_at DESC"
 );
 
@@ -209,15 +209,15 @@ if ($cat_res) while($r = $cat_res->fetch_assoc()) $categories[] = $r;
 
 $payments = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
 
-$total_amount  = array_sum(array_column($payments, 'amount_paid'));
-$auto_open_add = isset($_GET['action']) && $_GET['action'] === 'add';
+$total_amount  = array_sum(array_column($payments, \'amount_paid\'));
+$auto_open_add = isset($_GET[\'action\']) && $_GET[\'action\'] === \'add\';
 
-include '../includes/header.php';
-include '../includes/sidebar.php';
+include \'../includes/header.php\';
+include \'../includes/sidebar.php\';
 ?>
 
 <div id="content">
-<?php include '../includes/navbar.php'; ?>
+<?php include \'../includes/navbar.php\'; ?>
 <div id="main-content">
 <div class="container-fluid">
 
@@ -260,8 +260,8 @@ include '../includes/sidebar.php';
     <!-- Stats -->
     <div class="row g-3 mb-4">
         <?php foreach ([
-            ['Total Payments',  count($payments),                    'bi-receipt',    '#e0e7ff','#4338ca'],
-            ['Total Collected', '₹'.number_format($total_amount,2), 'bi-cash-stack', '#d1fae5','#065f46'],
+            [\'Total Payments\',  count($payments),                    \'bi-receipt\',    \'#e0e7ff\',\'#4338ca\'],
+            [\'Total Collected\', \'₹\'.number_format($total_amount,2), \'bi-cash-stack\', \'#d1fae5\',\'#065f46\'],
         ] as [$l,$v,$ic,$bg,$fg]): ?>
         <div class="col-sm-6">
             <div class="card border-0 shadow-sm">
@@ -284,10 +284,10 @@ include '../includes/sidebar.php';
         <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
             <strong><i class="bi bi-list-ul me-1"></i>All Payment Records</strong>
             <div class="d-flex gap-2">
-                <button onclick="exportTable('#paymentsTable', 'Fee Payments Report', 'excel')" class="btn btn-success btn-sm" title="Export to Excel">
+                <button onclick="exportTable(\'#paymentsTable\', \'Fee Payments Report\', \'excel\')" class="btn btn-success btn-sm" title="Export to Excel">
             <i class="bi bi-file-earmark-excel me-1"></i> Excel
         </button>
-                <button onclick="exportTable('#paymentsTable', 'Fee Payments Report', 'pdf')" class="btn btn-danger btn-sm" title="Export to PDF">
+                <button onclick="exportTable(\'#paymentsTable\', \'Fee Payments Report\', \'pdf\')" class="btn btn-danger btn-sm" title="Export to PDF">
             <i class="bi bi-file-earmark-pdf me-1"></i> PDF
         </button>
             </div>
@@ -322,38 +322,38 @@ include '../includes/sidebar.php';
                     </thead>
                     <tbody>
                     <?php foreach ($payments as $i => $p): ?>
-                        <tr id="pay-row-<?= $p['id'] ?>">
+                        <tr id="pay-row-<?= $p[\'id\'] ?>">
                             <td class="text-muted align-middle"><?= $i + 1 ?></td>
-                            <td class="align-middle fw-semibold"><?= htmlspecialchars($p['student_name']) ?></td>
+                            <td class="align-middle fw-semibold"><?= htmlspecialchars($p[\'student_name\']) ?></td>
                             <td class="align-middle">
-                                <span class="badge bg-primary"><?= htmlspecialchars($p['cat_name']) ?></span>
+                                <span class="badge bg-primary"><?= htmlspecialchars($p[\'cat_name\']) ?></span>
                             </td>
                             <td class="align-middle text-muted" style="font-size:13px">
-                                <?= htmlspecialchars($p['class_name']) ?>
+                                <?= htmlspecialchars($p[\'class_name\']) ?>
                             </td>
-                            <td class="align-middle"><?= htmlspecialchars($p['academic_year']) ?></td>
-                            <td class="align-middle text-muted">₹<?= number_format($p['fee_amount'], 2) ?></td>
-                            <td class="align-middle fw-bold text-success">₹<?= number_format($p['amount_paid'], 2) ?></td>
+                            <td class="align-middle"><?= htmlspecialchars($p[\'academic_year\']) ?></td>
+                            <td class="align-middle text-muted">₹<?= number_format($p[\'fee_amount\'], 2) ?></td>
+                            <td class="align-middle fw-bold text-success">₹<?= number_format($p[\'amount_paid\'], 2) ?></td>
                             <td class="align-middle">
                                 <?php
-                                $badge = match($p['payment_mode']) {
-                                    'Cash'          => 'bg-success',
-                                    'Bank Transfer' => 'bg-info text-dark',
-                                    'Cheque'        => 'bg-warning text-dark',
-                                    'Online'        => 'bg-primary',
-                                    default         => 'bg-secondary',
+                                $badge = match($p[\'payment_mode\']) {
+                                    \'Cash\'          => \'bg-success\',
+                                    \'Bank Transfer\' => \'bg-info text-dark\',
+                                    \'Cheque\'        => \'bg-warning text-dark\',
+                                    \'Online\'        => \'bg-primary\',
+                                    default         => \'bg-secondary\',
                                 };
                                 ?>
-                                <span class="badge <?= $badge ?>"><?= htmlspecialchars($p['payment_mode']) ?></span>
+                                <span class="badge <?= $badge ?>"><?= htmlspecialchars($p[\'payment_mode\']) ?></span>
                             </td>
                             <td class="align-middle text-muted" style="font-size:13px">
-                                <?= htmlspecialchars($p['receipt_no'] ?: '—') ?>
+                                <?= htmlspecialchars($p[\'receipt_no\'] ?: \'—\') ?>
                             </td>
                             <td class="align-middle text-muted" style="font-size:13px">
-                                <?= date('d M Y', strtotime($p['payment_date'])) ?>
+                                <?= date(\'d M Y\', strtotime($p[\'payment_date\'])) ?>
                             </td>
                             <td class="align-middle text-muted" style="font-size:13px">
-                                <?= htmlspecialchars($p['recorded_by_name'] ?? '—') ?>
+                                <?= htmlspecialchars($p[\'recorded_by_name\'] ?? \'—\') ?>
                             </td>
                             <td class="align-middle text-center" style="white-space:nowrap">
                                 <button class="btn btn-warning btn-sm" title="Edit"
@@ -361,7 +361,7 @@ include '../includes/sidebar.php';
                                     <i class="bi bi-pencil"></i>
                                 </button>
                                 <button class="btn btn-danger btn-sm" title="Delete"
-                                    onclick="deletePay(<?= (int)$p['id'] ?>, '<?= htmlspecialchars(addslashes($p['student_name'])) ?>')">
+                                    onclick="deletePay(<?= (int)$p[\'id\'] ?>, \'<?= htmlspecialchars(addslashes($p[\'student_name\'])) ?>\')">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </td>
@@ -394,8 +394,8 @@ include '../includes/sidebar.php';
                             <select name="student_id" class="form-select" required>
                                 <option value="">-- Select Student --</option>
                                 <?php foreach ($students as $st): ?>
-                                    <option value="<?= $st['id'] ?>">
-                                        <?= htmlspecialchars($st['student_name']) ?>
+                                    <option value="<?= $st[\'id\'] ?>">
+                                        <?= htmlspecialchars($st[\'student_name\']) ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
@@ -411,20 +411,20 @@ include '../includes/sidebar.php';
                             <div class="border rounded p-3 shadow-sm" style="max-height: 200px; overflow-y: auto; background:#f8f9fa;">
                                 <?php $def_prio = 1; foreach ($structures as $fs): ?>
                                     <div class="form-check form-switch mb-3 d-flex align-items-center">
-                                        <input class="form-check-input" type="checkbox" name="fee_assignment_id[]" value="<?= $fs['id'] ?>" id="add_fs_<?= $fs['id'] ?>" style="transform: scale(1.2); margin-right: 10px;">
-                                        <label class="form-check-label flex-grow-1" for="add_fs_<?= $fs['id'] ?>">
+                                        <input class="form-check-input" type="checkbox" name="fee_assignment_id[]" value="<?= $fs[\'id\'] ?>" id="add_fs_<?= $fs[\'id\'] ?>" style="transform: scale(1.2); margin-right: 10px;">
+                                        <label class="form-check-label flex-grow-1" for="add_fs_<?= $fs[\'id\'] ?>">
                                             <div class="d-flex justify-content-between align-items-center">
                                                 <div>
-                                                    <strong><?= htmlspecialchars($fs['cat_name']) ?></strong> 
-                                                    <span class="text-muted" style="font-size:13px;">— <?= htmlspecialchars($fs['class_name']) ?> (<?= htmlspecialchars($fs['academic_year']) ?>)</span>
+                                                    <strong><?= htmlspecialchars($fs[\'cat_name\']) ?></strong> 
+                                                    <span class="text-muted" style="font-size:13px;">— <?= htmlspecialchars($fs[\'class_name\']) ?> (<?= htmlspecialchars($fs[\'academic_year\']) ?>)</span>
                                                 </div>
-                                                <span class="badge bg-success rounded-pill px-3">₹<?= number_format($fs['amount'], 2) ?></span>
+                                                <span class="badge bg-success rounded-pill px-3">₹<?= number_format($fs[\'amount\'], 2) ?></span>
                                             </div>
                                         </label>
                                         <div style="width: 100px;" class="ms-3" title="Payment Priority (1 pays first)">
                                             <div class="input-group input-group-sm">
                                                 <span class="input-group-text bg-light"><i class="bi bi-sort-numeric-down"></i></span>
-                                                <input type="number" name="priority[<?= $fs['id'] ?>]" class="form-control text-center" value="<?= $def_prio++ ?>" min="1">
+                                                <input type="number" name="priority[<?= $fs[\'id\'] ?>]" class="form-control text-center" value="<?= $def_prio++ ?>" min="1">
                                             </div>
                                         </div>
                                     </div>
@@ -436,7 +436,7 @@ include '../includes/sidebar.php';
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Payment Date <span class="text-danger">*</span></label>
                             <input type="date" name="payment_date" class="form-control"
-                                   value="<?= date('Y-m-d') ?>" required>
+                                   value="<?= date(\'Y-m-d\') ?>" required>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Payment Method</label>
@@ -489,8 +489,8 @@ include '../includes/sidebar.php';
                             <select name="student_id" id="ep_student" class="form-select" required>
                                 <option value="">-- Select Student --</option>
                                 <?php foreach ($students as $st): ?>
-                                    <option value="<?= $st['id'] ?>">
-                                        <?= htmlspecialchars($st['student_name']) ?>
+                                    <option value="<?= $st[\'id\'] ?>">
+                                        <?= htmlspecialchars($st[\'student_name\']) ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
@@ -500,11 +500,11 @@ include '../includes/sidebar.php';
                             <select name="fee_assignment_id" id="ep_struct" class="form-select" required>
                                 <option value="">-- Select Fee Structure --</option>
                                 <?php foreach ($structures as $fs): ?>
-                                    <option value="<?= $fs['id'] ?>">
+                                    <option value="<?= $fs[\'id\'] ?>">
                                         <?= htmlspecialchars(
-                                            $fs['cat_name'] . ' – ' . $fs['class_name'] .
-                                            ' (' . $fs['academic_year'] . ') ₹' .
-                                            number_format($fs['amount'], 2)
+                                            $fs[\'cat_name\'] . \' – \' . $fs[\'class_name\'] .
+                                            \' (\' . $fs[\'academic_year\'] . \') ₹\' .
+                                            number_format($fs[\'amount\'], 2)
                                         ) ?>
                                     </option>
                                 <?php endforeach; ?>
@@ -551,54 +551,55 @@ include '../includes/sidebar.php';
 </div>
 
 <?php
-if (!empty($success)) echo "<script>window._toastMsg=".json_encode($success).";window._toastType='success';</script>";
-if (!empty($error))   echo "<script>window._toastMsg=".json_encode($error).";window._toastType='danger';</script>";
-if ($auto_open_add)   echo "<script>document.addEventListener('DOMContentLoaded',()=>{new bootstrap.Modal(document.getElementById('addPayModal')).show();});</script>";
+if (!empty($success)) echo "<script>window._toastMsg=".json_encode($success).";window._toastType=\'success\';</script>";
+if (!empty($error))   echo "<script>window._toastMsg=".json_encode($error).";window._toastType=\'danger\';</script>";
+if ($auto_open_add)   echo "<script>document.addEventListener(\'DOMContentLoaded\',()=>{new bootstrap.Modal(document.getElementById(\'addPayModal\')).show();});</script>";
 ?>
-<?php include '../includes/footer.php'; ?>
+<?php include \'../includes/footer.php\'; ?>
 </div><!-- /#content -->
 
 <script>
 $(document).ready(function () {
-    $('#paymentsTable').DataTable({
+    $(\'#paymentsTable\').DataTable({
         pageLength : 10,
         lengthMenu : [[5, 10, 25, 50], [5, 10, 25, 50]],
         columnDefs : [{ orderable: false, targets: 11 }],
-        order      : [[0, 'asc']]
+        order      : [[0, \'asc\']]
     });
 });
 
 function openEditPay(p) {
-    document.getElementById('ep_id').value      = p.id;
-    document.getElementById('ep_student').value = p.student_id;
-    document.getElementById('ep_struct').value  = p.fee_assignment_id;
-    document.getElementById('ep_amount').value  = p.amount_paid;
-    document.getElementById('ep_date').value    = p.payment_date;
-    document.getElementById('ep_mode').value    = p.payment_mode;
-    document.getElementById('ep_receipt').value = p.receipt_no  || '';
-    document.getElementById('ep_remarks').value = p.remarks     || '';
-    new bootstrap.Modal(document.getElementById('editPayModal')).show();
+    document.getElementById(\'ep_id\').value      = p.id;
+    document.getElementById(\'ep_student\').value = p.student_id;
+    document.getElementById(\'ep_struct\').value  = p.fee_assignment_id;
+    document.getElementById(\'ep_amount\').value  = p.amount_paid;
+    document.getElementById(\'ep_date\').value    = p.payment_date;
+    document.getElementById(\'ep_mode\').value    = p.payment_mode;
+    document.getElementById(\'ep_receipt\').value = p.receipt_no  || \'\';
+    document.getElementById(\'ep_remarks\').value = p.remarks     || \'\';
+    new bootstrap.Modal(document.getElementById(\'editPayModal\')).show();
 }
 
 function deletePay(id, name) {
-    if (!confirm('Delete payment record for "' + name + '"? This cannot be undone.')) return;
-    fetch('payments.php', {
-        method  : 'POST',
-        headers : { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body    : 'action=delete&id=' + id
+    if (!confirm(\'Delete payment record for "\' + name + \'"? This cannot be undone.\')) return;
+    fetch(\'payments.php\', {
+        method  : \'POST\',
+        headers : { \'Content-Type\': \'application/x-www-form-urlencoded\' },
+        body    : \'action=delete&id=\' + id
     })
     .then(r => r.json())
     .then(d => {
         if (d.success) {
-            window.showToast('Payment deleted!', 'success');
+            window.showToast(\'Payment deleted!\', \'success\');
             setTimeout(() => {
-                const row = document.getElementById('pay-row-' + id);
+                const row = document.getElementById(\'pay-row-\' + id);
                 if (row) row.remove();
             }, 400);
         } else {
-            window.showToast(d.message || 'Failed to delete.', 'danger');
+            window.showToast(d.message || \'Failed to delete.\', \'danger\');
         }
     })
-    .catch(() => window.showToast('Unexpected error.', 'danger'));
+    .catch(() => window.showToast(\'Unexpected error.\', \'danger\'));
 }
 </script>
+'); echo "Done payments"; ?>

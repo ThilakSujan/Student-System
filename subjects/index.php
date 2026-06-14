@@ -42,8 +42,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     }
 }
 
-// Fetch all subjects
-$subjects_result = $mysqli->query("SELECT * FROM subjects ORDER BY created_at DESC");
+// Fetch all subjects with Filters
+$from_date = $_GET['from_date'] ?? '';
+$to_date = $_GET['to_date'] ?? '';
+$status = $_GET['status'] ?? '';
+
+$where = ["1=1"];
+if ($from_date) $where[] = "DATE(created_at) >= '" . $mysqli->real_escape_string($from_date) . "'";
+if ($to_date) $where[] = "DATE(created_at) <= '" . $mysqli->real_escape_string($to_date) . "'";
+if ($status) $where[] = "status = '" . $mysqli->real_escape_string($status) . "'";
+
+$query = "SELECT * FROM subjects WHERE " . implode(' AND ', $where) . " ORDER BY created_at DESC";
+$subjects_result = $mysqli->query($query);
+
+// Summary Stats
+$all_subjects = [];
+$total_sub = $active_sub = $inactive_sub = 0;
+while ($row = $subjects_result->fetch_assoc()) {
+    $all_subjects[] = $row;
+    $total_sub++;
+    if ($row['status'] === 'Active') $active_sub++;
+    else $inactive_sub++;
+}
 ?>
 
 <?php include '../includes/header.php'; ?>
@@ -71,7 +91,70 @@ $subjects_result = $mysqli->query("SELECT * FROM subjects ORDER BY created_at DE
             </div>
         <?php endif; ?>
 
-        <div class="card mt-4">
+        <!-- Advanced Report Filters -->
+        <div class="card shadow-sm mb-4 mt-4 border-0">
+            <div class="card-header bg-light fw-bold">
+                <i class="bi bi-funnel"></i> Report Filters
+            </div>
+            <div class="card-body">
+                <form method="GET" action="index.php">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label">Created From</label>
+                            <input type="date" name="from_date" class="form-control" value="<?= htmlspecialchars($from_date) ?>">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Created To</label>
+                            <input type="date" name="to_date" class="form-control" value="<?= htmlspecialchars($to_date) ?>">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Status</label>
+                            <select name="status" class="form-select">
+                                <option value="">All</option>
+                                <option value="Active" <?= $status === 'Active' ? 'selected' : '' ?>>Active</option>
+                                <option value="Inactive" <?= $status === 'Inactive' ? 'selected' : '' ?>>Inactive</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mt-3 d-flex gap-2">
+                            <button type="submit" class="btn btn-primary w-100"><i class="bi bi-file-earmark-bar-graph"></i> Generate Report</button>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <a href="index.php" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-counterclockwise"></i> Reset Filters</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Report Summary -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card text-center text-bg-primary shadow-sm h-100">
+                    <div class="card-body">
+                        <h6 class="text-uppercase mb-1">Total Subjects</h6>
+                        <h3 class="mb-0"><?= $total_sub ?></h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center text-bg-success shadow-sm h-100">
+                    <div class="card-body">
+                        <h6 class="text-uppercase mb-1">Active</h6>
+                        <h3 class="mb-0"><?= $active_sub ?></h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center text-bg-secondary shadow-sm h-100">
+                    <div class="card-body">
+                        <h6 class="text-uppercase mb-1">Inactive</h6>
+                        <h3 class="mb-0"><?= $inactive_sub ?></h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4 border-0 shadow-sm">
             <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                 <h5 class="mb-0"><i class="bi bi-list"></i> Subjects List</h5>
                 <?php if (is_admin()): ?>
@@ -99,7 +182,7 @@ $subjects_result = $mysqli->query("SELECT * FROM subjects ORDER BY created_at DE
                         </tr>
                     </thead>
                     <tbody>
-                        <?php while ($subject = $subjects_result->fetch_assoc()): ?>
+                        <?php foreach ($all_subjects as $subject): ?>
                             <tr>
                                 <td><?php echo htmlspecialchars($subject['id']); ?></td>
                                 <td><strong><?php echo htmlspecialchars($subject['subject_code']); ?></strong></td>
@@ -120,10 +203,10 @@ $subjects_result = $mysqli->query("SELECT * FROM subjects ORDER BY created_at DE
                                     </button>
                                 </td>
                             </tr>
-                        <?php endwhile; ?>
+                        <?php endforeach; ?>
                     </tbody>
                 </table>
-                <?php if ($subjects_result->num_rows === 0): ?>
+                <?php if (empty($all_subjects)): ?>
                     <p class="text-center text-muted mt-3">No subjects found. <a href="#" data-bs-toggle="modal" data-bs-target="#addSubjectModal">Add one now</a>.</p>
                 <?php endif; ?>
             </div>

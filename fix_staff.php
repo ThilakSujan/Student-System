@@ -1,4 +1,7 @@
 <?php
+$file = 'c:\xampp\htdocs\student_system\staff\staff.php';
+$content = <<<'EOD'
+<?php
 require_once '../includes/auth.php';
 require_role(['admin']);
 
@@ -257,3 +260,6 @@ if (!empty($success)) {
     <?php require '../includes/footer.php'; ?>
 
 </div>
+EOD;
+
+file_put_contents($file, $content);

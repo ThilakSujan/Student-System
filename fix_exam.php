@@ -1,42 +1,42 @@
-<?php
+<?php file_put_contents("c:\\xampp\\htdocs\\student_system\\exam\\index.php", '<?php
 session_start();
-require_once '../config/db.php';
-require_once '../includes/auth.php';
+require_once \'../config/db.php\';
+require_once \'../includes/auth.php\';
 
 require_login();
 
-$user_role = $_SESSION['role'] ?? '';
-$user_id   = $_SESSION['user_id'] ?? 0;
-$today     = date('Y-m-d');
+$user_role = $_SESSION[\'role\'] ?? \'\';
+$user_id   = $_SESSION[\'user_id\'] ?? 0;
+$today     = date(\'Y-m-d\');
 
 // Handle flash messages
-$success = $_GET['success'] ?? '';
-$error   = $_GET['error']   ?? '';
+$success = $_GET[\'success\'] ?? \'\';
+$error   = $_GET[\'error\']   ?? \'\';
 
 // ── Auto-mark past "Scheduled" exams as "Completed" ──
 $mysqli->query("
     UPDATE exam_schedule
-    SET status = 'Completed'
-    WHERE status = 'Scheduled' AND exam_date < '$today'
+    SET status = \'Completed\'
+    WHERE status = \'Scheduled\' AND exam_date < \'$today\'
 ");
 
 // ── Fetch exams with joins (role-aware) ──
-$from_date = $_GET['from_date'] ?? '';
-$to_date = $_GET['to_date'] ?? '';
-$status_filter = $_GET['status'] ?? '';
-$type_filter = $_GET['exam_type'] ?? '';
+$from_date = $_GET[\'from_date\'] ?? \'\';
+$to_date = $_GET[\'to_date\'] ?? \'\';
+$status_filter = $_GET[\'status\'] ?? \'\';
+$type_filter = $_GET[\'exam_type\'] ?? \'\';
 
 $where = [];
-if ($from_date) $where[] = "es.exam_date >= '" . $mysqli->real_escape_string($from_date) . "'";
-if ($to_date) $where[] = "es.exam_date <= '" . $mysqli->real_escape_string($to_date) . "'";
-if ($status_filter) $where[] = "es.status = '" . $mysqli->real_escape_string($status_filter) . "'";
-if ($type_filter) $where[] = "es.exam_type = '" . $mysqli->real_escape_string($type_filter) . "'";
+if ($from_date) $where[] = "es.exam_date >= \'" . $mysqli->real_escape_string($from_date) . "\'";
+if ($to_date) $where[] = "es.exam_date <= \'" . $mysqli->real_escape_string($to_date) . "\'";
+if ($status_filter) $where[] = "es.status = \'" . $mysqli->real_escape_string($status_filter) . "\'";
+if ($type_filter) $where[] = "es.exam_type = \'" . $mysqli->real_escape_string($type_filter) . "\'";
 
-if ($user_role === 'student') {
-    $where[] = "es.status = 'Scheduled'";
-    $where[] = "es.exam_date >= '$today'";
+if ($user_role === \'student\') {
+    $where[] = "es.status = \'Scheduled\'";
+    $where[] = "es.exam_date >= \'$today\'";
     
-    $where_sql = count($where) > 0 ? "WHERE " . implode(' AND ', $where) : "";
+    $where_sql = count($where) > 0 ? "WHERE " . implode(\' AND \', $where) : "";
     // Students only see upcoming/scheduled exams (today or future, not cancelled)
     $query = "
         SELECT es.*,
@@ -49,7 +49,7 @@ if ($user_role === 'student') {
         ORDER BY es.exam_date ASC, es.start_time ASC
     ";
 } else {
-    $where_sql = count($where) > 0 ? "WHERE " . implode(' AND ', $where) : "";
+    $where_sql = count($where) > 0 ? "WHERE " . implode(\' AND \', $where) : "";
     // Admin / Staff see all exams
     $query = "
         SELECT es.*,
@@ -74,24 +74,24 @@ if ($result) {
 }
 
 // ── Stats (always from full data for admin/staff) ──
-if ($user_role === 'student') {
+if ($user_role === \'student\') {
     $total     = count($exams);
     $scheduled = $total;
     $completed = 0;
     $cancelled = 0;
     // Count total completed for context
-    $cmp_res   = $mysqli->query("SELECT COUNT(*) FROM exam_schedule WHERE status='Completed'");
+    $cmp_res   = $mysqli->query("SELECT COUNT(*) FROM exam_schedule WHERE status=\'Completed\'");
     $completed = $cmp_res ? (int)$cmp_res->fetch_row()[0] : 0;
 } else {
     $total      = count($exams);
-    $scheduled  = count(array_filter($exams, fn($e) => $e['status'] === 'Scheduled'));
-    $completed  = count(array_filter($exams, fn($e) => $e['status'] === 'Completed'));
-    $cancelled  = count(array_filter($exams, fn($e) => $e['status'] === 'Cancelled'));
+    $scheduled  = count(array_filter($exams, fn($e) => $e[\'status\'] === \'Scheduled\'));
+    $completed  = count(array_filter($exams, fn($e) => $e[\'status\'] === \'Completed\'));
+    $cancelled  = count(array_filter($exams, fn($e) => $e[\'status\'] === \'Cancelled\'));
 }
 
 $page_title = "Exam Schedule";
-include '../includes/header.php';
-include '../includes/sidebar.php';
+include \'../includes/header.php\';
+include \'../includes/sidebar.php\';
 ?>
 
 <style>
@@ -108,14 +108,14 @@ include '../includes/sidebar.php';
     overflow: hidden;
 }
 .exam-hero::before {
-    content: ''; position: absolute;
+    content: \'\'; position: absolute;
     top: -40px; right: -40px;
     width: 180px; height: 180px;
     border-radius: 50%;
     background: rgba(255,255,255,0.08);
 }
 .exam-hero::after {
-    content: ''; position: absolute;
+    content: \'\'; position: absolute;
     bottom: -60px; right: 60px;
     width: 120px; height: 120px;
     border-radius: 50%;
@@ -249,7 +249,7 @@ include '../includes/sidebar.php';
     letter-spacing: .1em; color: #94a3b8;
 }
 .section-divider::before, .section-divider::after {
-    content: ''; flex: 1; height: 1px; background: #e2e8f0;
+    content: \'\'; flex: 1; height: 1px; background: #e2e8f0;
 }
 
 /* ── Responsive: hide table on mobile ── */
@@ -271,7 +271,7 @@ include '../includes/sidebar.php';
 </style>
 
 <div id="content">
-    <?php include '../includes/navbar.php'; ?>
+    <?php include \'../includes/navbar.php\'; ?>
 
     <div id="main-content">
         <div class="container-fluid">
@@ -281,24 +281,24 @@ include '../includes/sidebar.php';
                 <div class="d-flex align-items-center gap-3 flex-wrap">
                     <div style="flex:1; min-width:180px;">
                         <h2><i class="bi bi-calendar-event-fill me-2"></i>
-                            <?= $user_role === 'student' ? 'Upcoming Exams' : 'Exam Schedule' ?>
+                            <?= $user_role === \'student\' ? \'Upcoming Exams\' : \'Exam Schedule\' ?>
                         </h2>
                         <p>
-                            <?= $user_role === 'student'
-                                ? 'Your upcoming scheduled examinations'
-                                : 'Manage and view all scheduled examinations' ?>
+                            <?= $user_role === \'student\'
+                                ? \'Your upcoming scheduled examinations\'
+                                : \'Manage and view all scheduled examinations\' ?>
                         </p>
                     </div>
-                    <?php if (in_array($user_role, ['admin','staff'])): ?>
+                    <?php if (in_array($user_role, [\'admin\',\'staff\'])): ?>
                     <a href="add.php" class="btn btn-light fw-semibold px-4 py-2" style="border-radius:10px; color:#667eea;">
                         <i class="bi bi-plus-circle-fill me-2"></i>Schedule Exam
                     </a>
                     <?php endif; ?>
-                    <?php if ($user_role === 'admin'): ?>
-                    <button onclick="exportTable('#examTable', 'Exam Schedule Report', 'excel')" class="btn btn-success fw-semibold px-3 py-2" title="Export to Excel">
+                    <?php if ($user_role === \'admin\'): ?>
+                    <button onclick="exportTable(\'#examTable\', \'Exam Schedule Report\', \'excel\')" class="btn btn-success fw-semibold px-3 py-2" title="Export to Excel">
             <i class="bi bi-file-earmark-excel me-1"></i> Excel
         </button>
-                    <button onclick="exportTable('#examTable', 'Exam Schedule Report', 'pdf')" class="btn btn-danger fw-semibold px-3 py-2" title="Export to PDF">
+                    <button onclick="exportTable(\'#examTable\', \'Exam Schedule Report\', \'pdf\')" class="btn btn-danger fw-semibold px-3 py-2" title="Export to PDF">
             <i class="bi bi-file-earmark-pdf me-1"></i> PDF
         </button>
                     <?php endif; ?>
@@ -321,7 +321,7 @@ include '../includes/sidebar.php';
 
             <!-- Stats Row -->
             <div class="row g-3 mb-4">
-                <?php if ($user_role === 'student'): ?>
+                <?php if ($user_role === \'student\'): ?>
                 <div class="col-6 col-md-4">
                     <div class="stat-card bg-white">
                         <div class="stat-icon" style="background:#dbeafe; color:#1d4ed8;"><i class="bi bi-hourglass-split"></i></div>
@@ -381,7 +381,7 @@ include '../includes/sidebar.php';
             </div>
 
             <!-- Advanced Report Filters (admin/staff only) -->
-            <?php if (in_array($user_role, ['admin','staff'])): ?>
+            <?php if (in_array($user_role, [\'admin\',\'staff\'])): ?>
             <div class="card shadow-sm mb-4 border-0">
                 <div class="card-header bg-light fw-bold">
                     <i class="bi bi-funnel"></i> Report Filters
@@ -401,20 +401,20 @@ include '../includes/sidebar.php';
                                 <label class="form-label" style="font-size:13px">Status</label>
                                 <select name="status" class="form-select">
                                     <option value="">All Statuses</option>
-                                    <option value="Scheduled" <?= $status_filter === 'Scheduled' ? 'selected' : '' ?>>Scheduled</option>
-                                    <option value="Completed" <?= $status_filter === 'Completed' ? 'selected' : '' ?>>Completed</option>
-                                    <option value="Cancelled" <?= $status_filter === 'Cancelled' ? 'selected' : '' ?>>Cancelled</option>
+                                    <option value="Scheduled" <?= $status_filter === \'Scheduled\' ? \'selected\' : \'\' ?>>Scheduled</option>
+                                    <option value="Completed" <?= $status_filter === \'Completed\' ? \'selected\' : \'\' ?>>Completed</option>
+                                    <option value="Cancelled" <?= $status_filter === \'Cancelled\' ? \'selected\' : \'\' ?>>Cancelled</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label" style="font-size:13px">Exam Type</label>
                                 <select name="exam_type" class="form-select">
                                     <option value="">All Types</option>
-                                    <option value="Internal" <?= $type_filter === 'Internal' ? 'selected' : '' ?>>Internal</option>
-                                    <option value="External" <?= $type_filter === 'External' ? 'selected' : '' ?>>External</option>
-                                    <option value="Practical" <?= $type_filter === 'Practical' ? 'selected' : '' ?>>Practical</option>
-                                    <option value="Viva" <?= $type_filter === 'Viva' ? 'selected' : '' ?>>Viva</option>
-                                    <option value="Other" <?= $type_filter === 'Other' ? 'selected' : '' ?>>Other</option>
+                                    <option value="Internal" <?= $type_filter === \'Internal\' ? \'selected\' : \'\' ?>>Internal</option>
+                                    <option value="External" <?= $type_filter === \'External\' ? \'selected\' : \'\' ?>>External</option>
+                                    <option value="Practical" <?= $type_filter === \'Practical\' ? \'selected\' : \'\' ?>>Practical</option>
+                                    <option value="Viva" <?= $type_filter === \'Viva\' ? \'selected\' : \'\' ?>>Viva</option>
+                                    <option value="Other" <?= $type_filter === \'Other\' ? \'selected\' : \'\' ?>>Other</option>
                                 </select>
                             </div>
                             <div class="col-md-2 mt-3 d-flex gap-2 w-100">
@@ -436,9 +436,9 @@ include '../includes/sidebar.php';
                         <?php if (empty($exams)): ?>
                         <div class="empty-state">
                             <i class="bi bi-calendar-x"></i>
-                            <h5><?= $user_role === 'student' ? 'No Upcoming Exams' : 'No Exams Scheduled Yet' ?></h5>
+                            <h5><?= $user_role === \'student\' ? \'No Upcoming Exams\' : \'No Exams Scheduled Yet\' ?></h5>
                             <p class="mb-0">
-                                <?php if (in_array($user_role, ['admin','staff'])): ?>
+                                <?php if (in_array($user_role, [\'admin\',\'staff\'])): ?>
                                     <a href="add.php" class="btn btn-primary mt-2"><i class="bi bi-plus-circle me-1"></i>Schedule First Exam</a>
                                 <?php else: ?>
                                     All exams are completed or none have been scheduled yet.
@@ -459,65 +459,65 @@ include '../includes/sidebar.php';
                                         <th>Venue</th>
                                         <th>Type</th>
                                         <th>Status</th>
-                                        <?php if (in_array($user_role, ['admin','staff'])): ?>
+                                        <?php if (in_array($user_role, [\'admin\',\'staff\'])): ?>
                                         <th>Actions</th>
                                         <?php endif; ?>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php foreach ($exams as $i => $e):
-                                        $isInactive = in_array($e['status'], ['Completed','Cancelled']);
-                                        $typeClass  = 'type-' . strtolower($e['exam_type']);
-                                        $statusClass= 'status-' . strtolower($e['status']);
-                                        $dateFormatted = $e['exam_date'] ? date('d M Y', strtotime($e['exam_date'])) : '—';
-                                        $timeRange = '';
-                                        if ($e['start_time']) {
-                                            $timeRange = date('g:i A', strtotime($e['start_time']));
-                                            if ($e['end_time']) $timeRange .= ' – ' . date('g:i A', strtotime($e['end_time']));
+                                        $isInactive = in_array($e[\'status\'], [\'Completed\',\'Cancelled\']);
+                                        $typeClass  = \'type-\' . strtolower($e[\'exam_type\']);
+                                        $statusClass= \'status-\' . strtolower($e[\'status\']);
+                                        $dateFormatted = $e[\'exam_date\'] ? date(\'d M Y\', strtotime($e[\'exam_date\'])) : \'—\';
+                                        $timeRange = \'\';
+                                        if ($e[\'start_time\']) {
+                                            $timeRange = date(\'g:i A\', strtotime($e[\'start_time\']));
+                                            if ($e[\'end_time\']) $timeRange .= \' – \' . date(\'g:i A\', strtotime($e[\'end_time\']));
                                         }
                                         // Days left
-                                        $daysLeft = '';
-                                        if ($e['status'] === 'Scheduled' && $e['exam_date'] >= $today) {
-                                            $diff = (int)((strtotime($e['exam_date']) - strtotime($today)) / 86400);
-                                            $daysLeft = $diff === 0 ? 'Today' : ($diff === 1 ? 'Tomorrow' : "In $diff days");
+                                        $daysLeft = \'\';
+                                        if ($e[\'status\'] === \'Scheduled\' && $e[\'exam_date\'] >= $today) {
+                                            $diff = (int)((strtotime($e[\'exam_date\']) - strtotime($today)) / 86400);
+                                            $daysLeft = $diff === 0 ? \'Today\' : ($diff === 1 ? \'Tomorrow\' : "In $diff days");
                                         }
                                     ?>
-                                    <tr class="<?= $isInactive ? 'exam-row-inactive' : '' ?>"
-                                        data-status="<?= $e['status'] ?>"
-                                        data-type="<?= $e['exam_type'] ?>"
-                                        data-date="<?= $e['exam_date'] ?>">
+                                    <tr class="<?= $isInactive ? \'exam-row-inactive\' : \'\' ?>"
+                                        data-status="<?= $e[\'status\'] ?>"
+                                        data-type="<?= $e[\'exam_type\'] ?>"
+                                        data-date="<?= $e[\'exam_date\'] ?>">
                                         <td><span class="badge bg-light text-secondary"><?= $i + 1 ?></span></td>
                                         <td>
-                                            <strong><?= htmlspecialchars($e['exam_title']) ?></strong>
+                                            <strong><?= htmlspecialchars($e[\'exam_title\']) ?></strong>
                                             <?php if ($daysLeft): ?>
                                             <div class="mt-1">
                                                 <span class="days-left-badge"><?= $daysLeft ?></span>
                                             </div>
                                             <?php endif; ?>
-                                            <?php if ($e['description'] && !$isInactive): ?>
-                                            <div class="text-muted" style="font-size:.78rem; margin-top:2px;"><?= htmlspecialchars(mb_substr($e['description'], 0, 50)) ?>…</div>
+                                            <?php if ($e[\'description\'] && !$isInactive): ?>
+                                            <div class="text-muted" style="font-size:.78rem; margin-top:2px;"><?= htmlspecialchars(mb_substr($e[\'description\'], 0, 50)) ?>…</div>
                                             <?php endif; ?>
                                         </td>
-                                        <td><?= $e['subject_name'] ? htmlspecialchars($e['subject_name']) : '<span class="text-muted">—</span>' ?></td>
+                                        <td><?= $e[\'subject_name\'] ? htmlspecialchars($e[\'subject_name\']) : \'<span class="text-muted">—</span>\' ?></td>
                                         <td>
-                                            <?php if ($e['class_name']): ?>
-                                                <?= htmlspecialchars($e['class_name']) ?>
-                                                <?php if ($e['section']): ?><span class="text-muted"> (<?= htmlspecialchars($e['section']) ?>)</span><?php endif; ?>
+                                            <?php if ($e[\'class_name\']): ?>
+                                                <?= htmlspecialchars($e[\'class_name\']) ?>
+                                                <?php if ($e[\'section\']): ?><span class="text-muted"> (<?= htmlspecialchars($e[\'section\']) ?>)</span><?php endif; ?>
                                             <?php else: ?><span class="text-muted">—</span><?php endif; ?>
                                         </td>
-                                        <td><span class="<?= $isInactive ? '' : 'fw-semibold' ?>"><?= $dateFormatted ?></span></td>
-                                        <td><?= $timeRange ?: '<span class="text-muted">—</span>' ?></td>
-                                        <td><?= $e['venue'] ? htmlspecialchars($e['venue']) : '<span class="text-muted">—</span>' ?></td>
-                                        <td><span class="exam-type-badge <?= $typeClass ?>"><?= $e['exam_type'] ?></span></td>
-                                        <td><span class="exam-type-badge <?= $statusClass ?>"><?= $e['status'] ?></span></td>
-                                        <?php if (in_array($user_role, ['admin','staff'])): ?>
+                                        <td><span class="<?= $isInactive ? \'\' : \'fw-semibold\' ?>"><?= $dateFormatted ?></span></td>
+                                        <td><?= $timeRange ?: \'<span class="text-muted">—</span>\' ?></td>
+                                        <td><?= $e[\'venue\'] ? htmlspecialchars($e[\'venue\']) : \'<span class="text-muted">—</span>\' ?></td>
+                                        <td><span class="exam-type-badge <?= $typeClass ?>"><?= $e[\'exam_type\'] ?></span></td>
+                                        <td><span class="exam-type-badge <?= $statusClass ?>"><?= $e[\'status\'] ?></span></td>
+                                        <?php if (in_array($user_role, [\'admin\',\'staff\'])): ?>
                                         <td>
                                             <div class="d-flex gap-1">
-                                                <a href="edit.php?id=<?= $e['id'] ?>" class="btn-action" style="background:#dbeafe; color:#1d4ed8;" title="Edit">
+                                                <a href="edit.php?id=<?= $e[\'id\'] ?>" class="btn-action" style="background:#dbeafe; color:#1d4ed8;" title="Edit">
                                                     <i class="bi bi-pencil-fill"></i>
                                                 </a>
                                                 <button class="btn-action btn-delete-exam" style="background:#fee2e2; color:#dc2626;" title="Delete"
-                                                        data-id="<?= $e['id'] ?>" data-title="<?= htmlspecialchars($e['exam_title']) ?>">
+                                                        data-id="<?= $e[\'id\'] ?>" data-title="<?= htmlspecialchars($e[\'exam_title\']) ?>">
                                                     <i class="bi bi-trash-fill"></i>
                                                 </button>
                                             </div>
@@ -540,8 +540,8 @@ include '../includes/sidebar.php';
                 <?php if (empty($exams)): ?>
                 <div class="empty-state">
                     <i class="bi bi-calendar-x"></i>
-                    <h5><?= $user_role === 'student' ? 'No Upcoming Exams' : 'No Exams Scheduled Yet' ?></h5>
-                    <?php if (in_array($user_role, ['admin','staff'])): ?>
+                    <h5><?= $user_role === \'student\' ? \'No Upcoming Exams\' : \'No Exams Scheduled Yet\' ?></h5>
+                    <?php if (in_array($user_role, [\'admin\',\'staff\'])): ?>
                         <a href="add.php" class="btn btn-primary mt-2"><i class="bi bi-plus-circle me-1"></i>Schedule First Exam</a>
                     <?php else: ?>
                         <p class="text-muted">All exams are completed or none scheduled yet.</p>
@@ -552,33 +552,33 @@ include '../includes/sidebar.php';
                     <?php
                     $prevInactive = false;
                     foreach ($exams as $e):
-                        $isInactive  = in_array($e['status'], ['Completed','Cancelled']);
-                        $typeClass   = 'type-' . strtolower($e['exam_type']);
-                        $statusClass = 'status-' . strtolower($e['status']);
-                        $dayStr = $e['exam_date'] ? date('d', strtotime($e['exam_date'])) : '--';
-                        $monStr = $e['exam_date'] ? date('M', strtotime($e['exam_date'])) : '--';
-                        $timeRange = '';
-                        if ($e['start_time']) {
-                            $timeRange = date('g:i A', strtotime($e['start_time']));
-                            if ($e['end_time']) $timeRange .= ' – ' . date('g:i A', strtotime($e['end_time']));
+                        $isInactive  = in_array($e[\'status\'], [\'Completed\',\'Cancelled\']);
+                        $typeClass   = \'type-\' . strtolower($e[\'exam_type\']);
+                        $statusClass = \'status-\' . strtolower($e[\'status\']);
+                        $dayStr = $e[\'exam_date\'] ? date(\'d\', strtotime($e[\'exam_date\'])) : \'--\';
+                        $monStr = $e[\'exam_date\'] ? date(\'M\', strtotime($e[\'exam_date\'])) : \'--\';
+                        $timeRange = \'\';
+                        if ($e[\'start_time\']) {
+                            $timeRange = date(\'g:i A\', strtotime($e[\'start_time\']));
+                            if ($e[\'end_time\']) $timeRange .= \' – \' . date(\'g:i A\', strtotime($e[\'end_time\']));
                         }
-                        $daysLeft = '';
-                        if ($e['status'] === 'Scheduled' && $e['exam_date'] >= $today) {
-                            $diff = (int)((strtotime($e['exam_date']) - strtotime($today)) / 86400);
-                            $daysLeft = $diff === 0 ? 'Today' : ($diff === 1 ? 'Tomorrow' : "In $diff days");
+                        $daysLeft = \'\';
+                        if ($e[\'status\'] === \'Scheduled\' && $e[\'exam_date\'] >= $today) {
+                            $diff = (int)((strtotime($e[\'exam_date\']) - strtotime($today)) / 86400);
+                            $daysLeft = $diff === 0 ? \'Today\' : ($diff === 1 ? \'Tomorrow\' : "In $diff days");
                         }
                         // Section divider on first inactive card
-                        if ($isInactive && !$prevInactive && in_array($user_role, ['admin','staff'])):
+                        if ($isInactive && !$prevInactive && in_array($user_role, [\'admin\',\'staff\'])):
                     ?>
                     <div class="section-divider">Completed &amp; Cancelled</div>
                     <?php
                         endif;
                         $prevInactive = $isInactive;
                     ?>
-                    <div class="exam-card mb-3 <?= $isInactive ? 'exam-card-inactive' : '' ?>"
-                         data-status="<?= $e['status'] ?>"
-                         data-type="<?= $e['exam_type'] ?>"
-                         data-date="<?= $e['exam_date'] ?>">
+                    <div class="exam-card mb-3 <?= $isInactive ? \'exam-card-inactive\' : \'\' ?>"
+                         data-status="<?= $e[\'status\'] ?>"
+                         data-type="<?= $e[\'exam_type\'] ?>"
+                         data-date="<?= $e[\'exam_date\'] ?>">
                         <div class="card-top d-flex gap-3">
                             <div class="date-block">
                                 <div class="day"><?= $dayStr ?></div>
@@ -586,15 +586,15 @@ include '../includes/sidebar.php';
                             </div>
                             <div style="flex:1; min-width:0;">
                                 <div class="d-flex flex-wrap gap-1 mb-1">
-                                    <span class="exam-type-badge <?= $typeClass ?>"><?= $e['exam_type'] ?></span>
-                                    <span class="exam-type-badge <?= $statusClass ?>"><?= $e['status'] ?></span>
+                                    <span class="exam-type-badge <?= $typeClass ?>"><?= $e[\'exam_type\'] ?></span>
+                                    <span class="exam-type-badge <?= $statusClass ?>"><?= $e[\'status\'] ?></span>
                                     <?php if ($daysLeft): ?><span class="days-left-badge"><?= $daysLeft ?></span><?php endif; ?>
                                 </div>
-                                <div class="fw-bold" style="font-size:.98rem; color:<?= $isInactive ? '#9ca3af' : '#1e293b' ?>;">
-                                    <?= htmlspecialchars($e['exam_title']) ?>
+                                <div class="fw-bold" style="font-size:.98rem; color:<?= $isInactive ? \'#9ca3af\' : \'#1e293b\' ?>;">
+                                    <?= htmlspecialchars($e[\'exam_title\']) ?>
                                 </div>
-                                <?php if ($e['subject_name']): ?>
-                                <div class="text-muted" style="font-size:.82rem;"><i class="bi bi-book me-1"></i><?= htmlspecialchars($e['subject_name']) ?></div>
+                                <?php if ($e[\'subject_name\']): ?>
+                                <div class="text-muted" style="font-size:.82rem;"><i class="bi bi-book me-1"></i><?= htmlspecialchars($e[\'subject_name\']) ?></div>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -603,20 +603,20 @@ include '../includes/sidebar.php';
                                 <?php if ($timeRange): ?>
                                 <div class="col-6"><span class="text-muted" style="font-size:.78rem;"><i class="bi bi-clock me-1"></i><?= $timeRange ?></span></div>
                                 <?php endif; ?>
-                                <?php if ($e['venue']): ?>
-                                <div class="col-6"><span class="text-muted" style="font-size:.78rem;"><i class="bi bi-geo-alt me-1"></i><?= htmlspecialchars($e['venue']) ?></span></div>
+                                <?php if ($e[\'venue\']): ?>
+                                <div class="col-6"><span class="text-muted" style="font-size:.78rem;"><i class="bi bi-geo-alt me-1"></i><?= htmlspecialchars($e[\'venue\']) ?></span></div>
                                 <?php endif; ?>
-                                <?php if ($e['class_name']): ?>
-                                <div class="col-6"><span class="text-muted" style="font-size:.78rem;"><i class="bi bi-building me-1"></i><?= htmlspecialchars($e['class_name']) ?><?= $e['section'] ? ' ('.$e['section'].')' : '' ?></span></div>
+                                <?php if ($e[\'class_name\']): ?>
+                                <div class="col-6"><span class="text-muted" style="font-size:.78rem;"><i class="bi bi-building me-1"></i><?= htmlspecialchars($e[\'class_name\']) ?><?= $e[\'section\'] ? \' (\'.$e[\'section\'].\')\' : \'\' ?></span></div>
                                 <?php endif; ?>
                             </div>
-                            <?php if (in_array($user_role, ['admin','staff'])): ?>
+                            <?php if (in_array($user_role, [\'admin\',\'staff\'])): ?>
                             <div class="d-flex gap-2 mt-2 justify-content-end">
-                                <a href="edit.php?id=<?= $e['id'] ?>" class="btn btn-sm" style="background:#dbeafe; color:#1d4ed8; border-radius:8px; font-size:.8rem; padding:4px 12px;">
+                                <a href="edit.php?id=<?= $e[\'id\'] ?>" class="btn btn-sm" style="background:#dbeafe; color:#1d4ed8; border-radius:8px; font-size:.8rem; padding:4px 12px;">
                                     <i class="bi bi-pencil-fill me-1"></i>Edit
                                 </a>
                                 <button class="btn btn-sm btn-delete-exam" style="background:#fee2e2; color:#dc2626; border-radius:8px; font-size:.8rem; padding:4px 12px; border:none;"
-                                        data-id="<?= $e['id'] ?>" data-title="<?= htmlspecialchars($e['exam_title']) ?>">
+                                        data-id="<?= $e[\'id\'] ?>" data-title="<?= htmlspecialchars($e[\'exam_title\']) ?>">
                                     <i class="bi bi-trash-fill me-1"></i>Delete
                                 </button>
                             </div>
@@ -631,7 +631,7 @@ include '../includes/sidebar.php';
         </div><!-- /container-fluid -->
     </div><!-- /#main-content -->
 
-    <?php include '../includes/footer.php'; ?>
+    <?php include \'../includes/footer.php\'; ?>
 </div><!-- /#content -->
 
 <!-- Delete Modal -->
@@ -665,57 +665,58 @@ include '../includes/sidebar.php';
 $(document).ready(function () {
 
     // DataTable (desktop only)
-    if ($('#examTable').length) {
-        $('#examTable').DataTable({
+    if ($(\'#examTable\').length) {
+        $(\'#examTable\').DataTable({
             pageLength: 10,
             lengthMenu: [[5,10,25,50],[5,10,25,50]],
-            order: [[4, 'asc']],
-            columnDefs: [{ orderable: false, targets: <?= in_array($user_role, ['admin','staff']) ? 9 : -1 ?> }],
+            order: [[4, \'asc\']],
+            columnDefs: [{ orderable: false, targets: <?= in_array($user_role, [\'admin\',\'staff\']) ? 9 : -1 ?> }],
             createdRow: function(row, data, index) {
-                var status = $(row).data('status');
-                if (status === 'Completed' || status === 'Cancelled') {
-                    $(row).addClass('exam-row-inactive');
+                var status = $(row).data(\'status\');
+                if (status === \'Completed\' || status === \'Cancelled\') {
+                    $(row).addClass(\'exam-row-inactive\');
                 }
             }
         });
     }
 
     // Delete modal
-    $(document).on('click', '.btn-delete-exam', function () {
-        $('#deleteExamId').val($(this).data('id'));
-        $('#deleteExamTitle').text($(this).data('title'));
-        new bootstrap.Modal(document.getElementById('deleteModal')).show();
+    $(document).on(\'click\', \'.btn-delete-exam\', function () {
+        $(\'#deleteExamId\').val($(this).data(\'id\'));
+        $(\'#deleteExamTitle\').text($(this).data(\'title\'));
+        new bootstrap.Modal(document.getElementById(\'deleteModal\')).show();
     });
 
     // Filters (admin/staff only)
     function applyFilters() {
-        var status = $('#filterStatus').val();
-        var type   = $('#filterType').val();
-        var date   = $('#filterDate').val();
+        var status = $(\'#filterStatus\').val();
+        var type   = $(\'#filterType\').val();
+        var date   = $(\'#filterDate\').val();
 
-        $('#examTable tbody tr').each(function () {
-            var show = (!status || $(this).data('status') === status) &&
-                       (!type   || $(this).data('type')   === type)   &&
-                       (!date   || $(this).data('date')   === date);
+        $(\'#examTable tbody tr\').each(function () {
+            var show = (!status || $(this).data(\'status\') === status) &&
+                       (!type   || $(this).data(\'type\')   === type)   &&
+                       (!date   || $(this).data(\'date\')   === date);
             $(this).toggle(show);
         });
 
-        $('#examCards .exam-card').each(function () {
-            var show = (!status || $(this).data('status') === status) &&
-                       (!type   || $(this).data('type')   === type)   &&
-                       (!date   || $(this).data('date')   === date);
+        $(\'#examCards .exam-card\').each(function () {
+            var show = (!status || $(this).data(\'status\') === status) &&
+                       (!type   || $(this).data(\'type\')   === type)   &&
+                       (!date   || $(this).data(\'date\')   === date);
             $(this).toggle(show);
         });
     }
 
-    $('#filterStatus, #filterType, #filterDate').on('change', applyFilters);
-    $('#clearFilters').on('click', function () {
-        $('#filterStatus, #filterType').val('');
-        $('#filterDate').val('');
+    $(\'#filterStatus, #filterType, #filterDate\').on(\'change\', applyFilters);
+    $(\'#clearFilters\').on(\'click\', function () {
+        $(\'#filterStatus, #filterType\').val(\'\');
+        $(\'#filterDate\').val(\'\');
         applyFilters();
     });
 
     // Auto-dismiss alerts
-    setTimeout(function () { $('.alert').fadeOut(500); }, 4000);
+    setTimeout(function () { $(\'.alert\').fadeOut(500); }, 4000);
 });
 </script>
+'); echo "Done exam"; ?>

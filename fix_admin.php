@@ -1,103 +1,67 @@
-<?php
-require_once '../includes/auth.php';
-require_role(['admin']);
+<?php file_put_contents("c:\\xampp\\htdocs\\student_system\\admin\\admin_panel.php", '<?php
+require_once \'../includes/auth.php\';
+require_role([\'admin\']);
 
 $page_title = "User Management";
-require '../includes/header.php';
-require '../includes/sidebar.php';
-include '../config/db_pdo.php';
+require \'../includes/header.php\';
+require \'../includes/sidebar.php\';
+include \'../config/db_pdo.php\';
 
 $success = "";
 $error   = "";
 
 // DELETE USER
-if (isset($_GET['delete_user'])) {
-    $uid = (int) $_GET['delete_user'];
-    if ($uid == $_SESSION['user_id']) {
+if (isset($_GET[\'delete_user\'])) {
+    $uid = (int) $_GET[\'delete_user\'];
+    if ($uid == $_SESSION[\'user_id\']) {
         $error = "You cannot delete your own account.";
     } else {
         $stmt = $pdo->prepare("DELETE FROM users WHERE id = :id");
-        $stmt->execute([':id' => $uid]);
+        $stmt->execute([\':id\' => $uid]);
         $success = "User deleted successfully.";
     }
 }
 
 // MAKE ADMIN
-if (isset($_GET['make_admin'])) {
-    $uid = (int) $_GET['make_admin'];
-    $stmt = $pdo->prepare("UPDATE users SET role = 'admin' WHERE id = :id");
-    $stmt->execute([':id' => $uid]);
+if (isset($_GET[\'make_admin\'])) {
+    $uid = (int) $_GET[\'make_admin\'];
+    $stmt = $pdo->prepare("UPDATE users SET role = \'admin\' WHERE id = :id");
+    $stmt->execute([\':id\' => $uid]);
     $success = "User promoted to Admin.";
 }
 
 // MAKE STAFF
-if (isset($_GET['make_staff'])) {
-    $uid = (int) $_GET['make_staff'];
-    if ($uid == $_SESSION['user_id']) {
+if (isset($_GET[\'make_staff\'])) {
+    $uid = (int) $_GET[\'make_staff\'];
+    if ($uid == $_SESSION[\'user_id\']) {
         $error = "You cannot change your own role here.";
     } else {
-        $stmt = $pdo->prepare("UPDATE users SET role = 'staff' WHERE id = :id");
-        $stmt->execute([':id' => $uid]);
+        $stmt = $pdo->prepare("UPDATE users SET role = \'staff\' WHERE id = :id");
+        $stmt->execute([\':id\' => $uid]);
         $success = "User promoted to Staff.";
     }
 }
 
 // MAKE STUDENT
-if (isset($_GET['make_student'])) {
-    $uid = (int) $_GET['make_student'];
-    if ($uid == $_SESSION['user_id']) {
+if (isset($_GET[\'make_student\'])) {
+    $uid = (int) $_GET[\'make_student\'];
+    if ($uid == $_SESSION[\'user_id\']) {
         $error = "You cannot change your own role here.";
     } else {
-        $stmt = $pdo->prepare("UPDATE users SET role = 'student' WHERE id = :id");
-        $stmt->execute([':id' => $uid]);
+        $stmt = $pdo->prepare("UPDATE users SET role = \'student\' WHERE id = :id");
+        $stmt->execute([\':id\' => $uid]);
         $success = "User set to Student.";
     }
 }
 
-// FETCH ALL USERS WITH FILTERS
-$from_date = $_GET['from_date'] ?? '';
-$to_date = $_GET['to_date'] ?? '';
-$role_filter = $_GET['user_role'] ?? '';
-$account_status = $_GET['account_status'] ?? '';
-
-$where = ["1=1"];
-$params = [];
-
-if ($from_date) {
-    $where[] = "DATE(created_at) >= :from_date";
-    $params[':from_date'] = $from_date;
-}
-if ($to_date) {
-    $where[] = "DATE(created_at) <= :to_date";
-    $params[':to_date'] = $to_date;
-}
-if ($role_filter) {
-    $where[] = "role = :role";
-    $params[':role'] = $role_filter;
-}
-if ($account_status) {
-    $where[] = "account_status = :account_status";
-    $params[':account_status'] = $account_status;
-}
-
-$query = "SELECT * FROM users WHERE " . implode(' AND ', $where) . " ORDER BY created_at ASC";
-$stmt = $pdo->prepare($query);
-$stmt->execute($params);
+// FETCH ALL USERS
+$stmt  = $pdo->query("SELECT * FROM users ORDER BY created_at ASC");
 $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-// Summary Stats
-$total_users = count($users);
-$admin_count = $staff_count = $student_count = 0;
-foreach ($users as $u) {
-    if ($u['role'] === 'admin') $admin_count++;
-    elseif ($u['role'] === 'staff') $staff_count++;
-    elseif ($u['role'] === 'student') $student_count++;
-}
 ?>
 
 <!-- Content -->
 <div id="content">
-<?php require '../includes/navbar.php'; ?>
+<?php require \'../includes/navbar.php\'; ?>
 <div id="main-content">
 
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -107,13 +71,13 @@ foreach ($users as $u) {
         </div>
         <div class="d-flex gap-2 align-items-center">
             <?php
-            $pendingRes = $pdo->query("SELECT COUNT(*) FROM users WHERE account_status='Pending'");
+            $pendingRes = $pdo->query("SELECT COUNT(*) FROM users WHERE account_status=\'Pending\'");
             $pendingCnt = (int)$pendingRes->fetchColumn();
             if ($pendingCnt > 0):
             ?>
             <a href="approvals.php?status=Pending" class="btn btn-warning btn-sm fw-semibold">
                 <i class="bi bi-hourglass-split me-1"></i>
-                <?= $pendingCnt ?> Pending Approval<?= $pendingCnt > 1 ? 's' : '' ?>
+                <?= $pendingCnt ?> Pending Approval<?= $pendingCnt > 1 ? \'s\' : \'\' ?>
             </a>
             <?php endif; ?>
             <a href="approvals.php" class="btn btn-outline-primary btn-sm">
@@ -157,19 +121,19 @@ foreach ($users as $u) {
                         <label class="form-label" style="font-size:13px">User Role</label>
                         <select name="user_role" class="form-select">
                             <option value="">All Roles</option>
-                            <option value="admin" <?= $role_filter === 'admin' ? 'selected' : '' ?>>Admin</option>
-                            <option value="staff" <?= $role_filter === 'staff' ? 'selected' : '' ?>>Staff</option>
-                            <option value="student" <?= $role_filter === 'student' ? 'selected' : '' ?>>Student</option>
+                            <option value="admin" <?= $role_filter === \'admin\' ? \'selected\' : \'\' ?>>Admin</option>
+                            <option value="staff" <?= $role_filter === \'staff\' ? \'selected\' : \'\' ?>>Staff</option>
+                            <option value="student" <?= $role_filter === \'student\' ? \'selected\' : \'\' ?>>Student</option>
                         </select>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label" style="font-size:13px">Account Status</label>
                         <select name="account_status" class="form-select">
                             <option value="">All Statuses</option>
-                            <option value="Approved" <?= $account_status === 'Approved' ? 'selected' : '' ?>>Approved</option>
-                            <option value="Pending" <?= $account_status === 'Pending' ? 'selected' : '' ?>>Pending</option>
-                            <option value="Suspended" <?= $account_status === 'Suspended' ? 'selected' : '' ?>>Suspended</option>
-                            <option value="Rejected" <?= $account_status === 'Rejected' ? 'selected' : '' ?>>Rejected</option>
+                            <option value="Approved" <?= $account_status === \'Approved\' ? \'selected\' : \'\' ?>>Approved</option>
+                            <option value="Pending" <?= $account_status === \'Pending\' ? \'selected\' : \'\' ?>>Pending</option>
+                            <option value="Suspended" <?= $account_status === \'Suspended\' ? \'selected\' : \'\' ?>>Suspended</option>
+                            <option value="Rejected" <?= $account_status === \'Rejected\' ? \'selected\' : \'\' ?>>Rejected</option>
                         </select>
                     </div>
                     <div class="col-md-2 mt-3 d-flex gap-2 w-100">
@@ -221,10 +185,10 @@ foreach ($users as $u) {
         <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
             <strong><i class="bi bi-people"></i> Registered Users</strong>
             <div class="d-flex gap-2">
-                <button onclick="exportTable('table', 'Users Report', 'excel')" class="btn btn-success btn-sm" title="Export to Excel">
+                <button onclick="exportTable(\'table\', \'Users Report\', \'excel\')" class="btn btn-success btn-sm" title="Export to Excel">
             <i class="bi bi-file-earmark-excel me-1"></i> Excel
         </button>
-                <button onclick="exportTable('table', 'Users Report', 'pdf')" class="btn btn-danger btn-sm" title="Export to PDF">
+                <button onclick="exportTable(\'table\', \'Users Report\', \'pdf\')" class="btn btn-danger btn-sm" title="Export to PDF">
             <i class="bi bi-file-earmark-pdf me-1"></i> PDF
         </button>
             </div>
@@ -245,25 +209,25 @@ foreach ($users as $u) {
                 <tbody>
                     <?php if (count($users) == 0): ?>
                         <tr>
-                            <td colspan="7" class="text-center text-muted py-4">No users found.</td>
+                            <td colspan="6" class="text-center text-muted py-4">No users found.</td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($users as $u): ?>
-                            <tr <?php if ($u['id'] == $_SESSION['user_id']) echo 'class="table-warning"'; ?>>
-                                <td><?php echo $u['id']; ?></td>
+                            <tr <?php if ($u[\'id\'] == $_SESSION[\'user_id\']) echo \'class="table-warning"\'; ?>>
+                                <td><?php echo $u[\'id\']; ?></td>
                                 <td>
-                                    <?php echo htmlspecialchars($u['username']); ?>
-                                    <?php if ($u['id'] == $_SESSION['user_id']): ?>
+                                    <?php echo htmlspecialchars($u[\'username\']); ?>
+                                    <?php if ($u[\'id\'] == $_SESSION[\'user_id\']): ?>
                                         <span class="badge bg-secondary ms-1">You</span>
                                     <?php endif; ?>
                                 </td>
-                                <td><?php echo htmlspecialchars($u['email']); ?></td>
+                                <td><?php echo htmlspecialchars($u[\'email\']); ?></td>
                                 <td>
-                                    <?php if ($u['role'] == 'admin'): ?>
+                                    <?php if ($u[\'role\'] == \'admin\'): ?>
                                         <span class="badge bg-warning text-dark">
                                             <i class="bi bi-shield-fill"></i> Admin
                                         </span>
-                                    <?php elseif ($u['role'] == 'staff'): ?>
+                                    <?php elseif ($u[\'role\'] == \'staff\'): ?>
                                         <span class="badge bg-info text-dark">
                                             <i class="bi bi-people-fill"></i> Staff
                                         </span>
@@ -273,73 +237,62 @@ foreach ($users as $u) {
                                         </span>
                                     <?php endif; ?>
                                 </td>
+                                <td><?php echo date(\'d M Y, h:i A\', strtotime($u[\'created_at\'])); ?></td>
                                 <td>
-                                    <?php
-                                    $astat = $u['account_status'] ?? 'Approved';
-                                    $bdg = 'bg-secondary';
-                                    if ($astat === 'Approved') $bdg = 'bg-success';
-                                    elseif ($astat === 'Pending') $bdg = 'bg-warning text-dark';
-                                    elseif ($astat === 'Suspended') $bdg = 'bg-danger';
-                                    elseif ($astat === 'Rejected') $bdg = 'bg-danger';
-                                    ?>
-                                    <span class="badge <?= $bdg ?>"><?= htmlspecialchars($astat) ?></span>
-                                </td>
-                                <td><?php echo date('d M Y, h:i A', strtotime($u['created_at'])); ?></td>
-                                <td>
-                                    <?php if ($u['id'] != $_SESSION['user_id']): ?>
-                                        <?php if ($u['role'] == 'admin'): ?>
-                                            <a href="admin_panel.php?make_staff=<?php echo $u['id']; ?>"
+                                    <?php if ($u[\'id\'] != $_SESSION[\'user_id\']): ?>
+                                        <?php if ($u[\'role\'] == \'admin\'): ?>
+                                            <a href="admin_panel.php?make_staff=<?php echo $u[\'id\']; ?>"
                                                class="btn btn-info btn-sm"
-                                               onclick="return confirm('Change role to Staff?')">
+                                               onclick="return confirm(\'Change role to Staff?\')">
                                                 <i class="bi bi-people-fill"></i> Make Staff
                                             </a>
-                                            <a href="admin_panel.php?make_student=<?php echo $u['id']; ?>"
+                                            <a href="admin_panel.php?make_student=<?php echo $u[\'id\']; ?>"
                                                class="btn btn-secondary btn-sm"
-                                               onclick="return confirm('Change role to Student?')">
+                                               onclick="return confirm(\'Change role to Student?\')">
                                                 <i class="bi bi-person-fill"></i> Make Student
                                             </a>
-                                        <?php elseif ($u['role'] == 'staff'): ?>
-                                            <a href="admin_panel.php?make_admin=<?php echo $u['id']; ?>"
+                                        <?php elseif ($u[\'role\'] == \'staff\'): ?>
+                                            <a href="admin_panel.php?make_admin=<?php echo $u[\'id\']; ?>"
                                                class="btn btn-warning btn-sm"
-                                               onclick="return confirm('Promote to Admin?')">
+                                               onclick="return confirm(\'Promote to Admin?\')">
                                                 <i class="bi bi-arrow-up-circle"></i> Make Admin
                                             </a>
-                                            <a href="admin_panel.php?make_student=<?php echo $u['id']; ?>"
+                                            <a href="admin_panel.php?make_student=<?php echo $u[\'id\']; ?>"
                                                class="btn btn-secondary btn-sm"
-                                               onclick="return confirm('Change role to Student?')">
+                                               onclick="return confirm(\'Change role to Student?\')">
                                                 <i class="bi bi-person-fill"></i> Make Student
                                             </a>
-                                        <?php elseif ($u['role'] == 'student'): ?>
-                                            <a href="admin_panel.php?make_staff=<?php echo $u['id']; ?>"
+                                        <?php elseif ($u[\'role\'] == \'student\'): ?>
+                                            <a href="admin_panel.php?make_staff=<?php echo $u[\'id\']; ?>"
                                                class="btn btn-info btn-sm"
-                                               onclick="return confirm('Promote to Staff?')">
+                                               onclick="return confirm(\'Promote to Staff?\')">
                                                 <i class="bi bi-people-fill"></i> Make Staff
                                             </a>
-                                            <a href="admin_panel.php?make_admin=<?php echo $u['id']; ?>"
+                                            <a href="admin_panel.php?make_admin=<?php echo $u[\'id\']; ?>"
                                                class="btn btn-warning btn-sm"
-                                               onclick="return confirm('Promote to Admin?')">
+                                               onclick="return confirm(\'Promote to Admin?\')">
                                                 <i class="bi bi-arrow-up-circle"></i> Make Admin
                                             </a>
                                         <?php else: ?>
-                                            <a href="admin_panel.php?make_staff=<?php echo $u['id']; ?>"
+                                            <a href="admin_panel.php?make_staff=<?php echo $u[\'id\']; ?>"
                                                class="btn btn-info btn-sm"
-                                               onclick="return confirm('Change role to Staff?')">
+                                               onclick="return confirm(\'Change role to Staff?\')">
                                                 <i class="bi bi-people-fill"></i> Make Staff
                                             </a>
-                                            <a href="admin_panel.php?make_admin=<?php echo $u['id']; ?>"
+                                            <a href="admin_panel.php?make_admin=<?php echo $u[\'id\']; ?>"
                                                class="btn btn-warning btn-sm"
-                                               onclick="return confirm('Promote to Admin?')">
+                                               onclick="return confirm(\'Promote to Admin?\')">
                                                 <i class="bi bi-arrow-up-circle"></i> Make Admin
                                             </a>
-                                            <a href="admin_panel.php?make_student=<?php echo $u['id']; ?>"
+                                            <a href="admin_panel.php?make_student=<?php echo $u[\'id\']; ?>"
                                                class="btn btn-secondary btn-sm"
-                                               onclick="return confirm('Change role to Student?')">
+                                               onclick="return confirm(\'Change role to Student?\')">
                                                 <i class="bi bi-person-fill"></i> Make Student
                                             </a>
                                         <?php endif; ?>
-                                        <a href="admin_panel.php?delete_user=<?php echo $u['id']; ?>"
+                                        <a href="admin_panel.php?delete_user=<?php echo $u[\'id\']; ?>"
                                            class="btn btn-danger btn-sm"
-                                           onclick="return confirm('Delete this user?')">
+                                           onclick="return confirm(\'Delete this user?\')">
                                             <i class="bi bi-trash"></i> Delete
                                         </a>
                                     <?php else: ?>
@@ -355,5 +308,5 @@ foreach ($users as $u) {
     </div>
 
 </div>
-<?php require '../includes/footer.php'; ?>
-</div>
+<?php require \'../includes/footer.php\'; ?>
+</div>'); echo "Done admin"; ?>

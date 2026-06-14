@@ -1,4 +1,7 @@
 <?php
+$file = 'c:\xampp\htdocs\student_system\students\students.php';
+$content = <<<'EOD'
+<?php
 session_start();
 require_once '../includes/auth.php';
 require_role(['admin', 'staff']);
@@ -401,3 +404,6 @@ if (!empty($success)) {
 }
 ?>
 </script>
+EOD;
+
+file_put_contents($file, $content);

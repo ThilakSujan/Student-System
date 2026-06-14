@@ -1,30 +1,30 @@
-<?php
+<?php file_put_contents("c:\\xampp\\htdocs\\student_system\\notifications\\index.php", '<?php
 session_start();
-require_once '../includes/auth.php';
-require_role(['admin', 'staff']);
-require_once '../config/db.php';
+require_once \'../includes/auth.php\';
+require_role([\'admin\', \'staff\']);
+require_once \'../config/db.php\';
 
-$page_title = 'Manage Notifications';
-$role = $_SESSION['role'];
-$user_id = $_SESSION['user_id'];
+$page_title = \'Manage Notifications\';
+$role = $_SESSION[\'role\'];
+$user_id = $_SESSION[\'user_id\'];
 
 // Handle delete/status toggle
-if (isset($_GET['action']) && isset($_GET['id'])) {
-    $action = $_GET['action'];
-    $id = (int)$_GET['id'];
+if (isset($_GET[\'action\']) && isset($_GET[\'id\'])) {
+    $action = $_GET[\'action\'];
+    $id = (int)$_GET[\'id\'];
     
     // Ensure permission
     $perm_check = "";
-    if ($role === 'staff') {
+    if ($role === \'staff\') {
         $perm_check = " AND created_by = $user_id";
     }
     
-    if ($action === 'delete') {
+    if ($action === \'delete\') {
         $mysqli->query("DELETE FROM notifications WHERE id = $id" . $perm_check);
-        $_SESSION['success'] = "Notification deleted successfully.";
-    } elseif ($action === 'toggle') {
-        $mysqli->query("UPDATE notifications SET status = IF(status='Active', 'Inactive', 'Active') WHERE id = $id" . $perm_check);
-        $_SESSION['success'] = "Notification status updated.";
+        $_SESSION[\'success\'] = "Notification deleted successfully.";
+    } elseif ($action === \'toggle\') {
+        $mysqli->query("UPDATE notifications SET status = IF(status=\'Active\', \'Inactive\', \'Active\') WHERE id = $id" . $perm_check);
+        $_SESSION[\'success\'] = "Notification status updated.";
     }
     header("Location: index.php");
     exit();
@@ -34,22 +34,22 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
 $query = "SELECT n.*, u.username as creator_name, u.role as creator_role FROM notifications n JOIN users u ON n.created_by = u.id";
 
 $where = [];
-if ($role === 'staff') {
+if ($role === \'staff\') {
     $where[] = "n.created_by = $user_id";
 }
 
-$from_date = $_GET['from_date'] ?? '';
-$to_date = $_GET['to_date'] ?? '';
-$status = $_GET['status'] ?? '';
-$target_audience = $_GET['target_audience'] ?? '';
+$from_date = $_GET[\'from_date\'] ?? \'\';
+$to_date = $_GET[\'to_date\'] ?? \'\';
+$status = $_GET[\'status\'] ?? \'\';
+$target_audience = $_GET[\'target_audience\'] ?? \'\';
 
-if ($from_date) $where[] = "DATE(n.created_at) >= '" . $mysqli->real_escape_string($from_date) . "'";
-if ($to_date) $where[] = "DATE(n.created_at) <= '" . $mysqli->real_escape_string($to_date) . "'";
-if ($status) $where[] = "n.status = '" . $mysqli->real_escape_string($status) . "'";
-if ($target_audience) $where[] = "n.target_audience = '" . $mysqli->real_escape_string($target_audience) . "'";
+if ($from_date) $where[] = "DATE(n.created_at) >= \'" . $mysqli->real_escape_string($from_date) . "\'";
+if ($to_date) $where[] = "DATE(n.created_at) <= \'" . $mysqli->real_escape_string($to_date) . "\'";
+if ($status) $where[] = "n.status = \'" . $mysqli->real_escape_string($status) . "\'";
+if ($target_audience) $where[] = "n.target_audience = \'" . $mysqli->real_escape_string($target_audience) . "\'";
 
 if (count($where) > 0) {
-    $query .= " WHERE " . implode(' AND ', $where);
+    $query .= " WHERE " . implode(\' AND \', $where);
 }
 $query .= " ORDER BY n.created_at DESC";
 
@@ -61,12 +61,12 @@ if ($result) {
     }
 }
 
-require '../includes/header.php';
-require '../includes/sidebar.php';
+require \'../includes/header.php\';
+require \'../includes/sidebar.php\';
 ?>
 
 <div id="content">
-    <?php require '../includes/navbar.php'; ?>
+    <?php require \'../includes/navbar.php\'; ?>
     <div id="main-content">
         <div class="container-fluid">
             
@@ -76,11 +76,11 @@ require '../includes/sidebar.php';
                     <p class="text-muted mb-0" style="font-size:13px">Create and manage alerts for students and staff.</p>
                 </div>
                 <div class="d-flex gap-2 align-items-center">
-                    <?php if ($role === 'admin'): ?>
-                    <button onclick="exportTable('table', 'Notifications Report', 'excel')" class="btn btn-success btn-sm" title="Export to Excel">
+                    <?php if ($role === \'admin\'): ?>
+                    <button onclick="exportTable(\'table\', \'Notifications Report\', \'excel\')" class="btn btn-success btn-sm" title="Export to Excel">
             <i class="bi bi-file-earmark-excel me-1"></i> Excel
         </button>
-                    <button onclick="exportTable('table', 'Notifications Report', 'pdf')" class="btn btn-danger btn-sm" title="Export to PDF">
+                    <button onclick="exportTable(\'table\', \'Notifications Report\', \'pdf\')" class="btn btn-danger btn-sm" title="Export to PDF">
             <i class="bi bi-file-earmark-pdf me-1"></i> PDF
         </button>
                     <?php endif; ?>
@@ -88,12 +88,12 @@ require '../includes/sidebar.php';
                 </div>
             </div>
 
-            <?php if (isset($_SESSION['success'])): ?>
+            <?php if (isset($_SESSION[\'success\'])): ?>
                 <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <?= htmlspecialchars($_SESSION['success']) ?>
+                    <?= htmlspecialchars($_SESSION[\'success\']) ?>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
-                <?php unset($_SESSION['success']); ?>
+                <?php unset($_SESSION[\'success\']); ?>
             <?php endif; ?>
 
             <!-- Advanced Report Filters -->
@@ -116,17 +116,17 @@ require '../includes/sidebar.php';
                                 <label class="form-label" style="font-size:13px">Status</label>
                                 <select name="status" class="form-select">
                                     <option value="">All Statuses</option>
-                                    <option value="Active" <?= $status === 'Active' ? 'selected' : '' ?>>Active</option>
-                                    <option value="Inactive" <?= $status === 'Inactive' ? 'selected' : '' ?>>Inactive</option>
+                                    <option value="Active" <?= $status === \'Active\' ? \'selected\' : \'\' ?>>Active</option>
+                                    <option value="Inactive" <?= $status === \'Inactive\' ? \'selected\' : \'\' ?>>Inactive</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label" style="font-size:13px">Target Audience</label>
                                 <select name="target_audience" class="form-select">
                                     <option value="">All</option>
-                                    <option value="Students" <?= $target_audience === 'Students' ? 'selected' : '' ?>>Students</option>
-                                    <option value="Staff" <?= $target_audience === 'Staff' ? 'selected' : '' ?>>Staff</option>
-                                    <option value="Both" <?= $target_audience === 'Both' ? 'selected' : '' ?>>Both</option>
+                                    <option value="Students" <?= $target_audience === \'Students\' ? \'selected\' : \'\' ?>>Students</option>
+                                    <option value="Staff" <?= $target_audience === \'Staff\' ? \'selected\' : \'\' ?>>Staff</option>
+                                    <option value="Both" <?= $target_audience === \'Both\' ? \'selected\' : \'\' ?>>Both</option>
                                 </select>
                             </div>
                             <div class="col-md-2 mt-3 d-flex gap-2 w-100">
@@ -140,8 +140,8 @@ require '../includes/sidebar.php';
 
             <?php
             $total_notifs = count($notifications);
-            $active_notifs = count(array_filter($notifications, fn($n) => $n['status'] === 'Active'));
-            $expired_notifs = count(array_filter($notifications, fn($n) => strtotime($n['expiry_date']) < strtotime(date('Y-m-d'))));
+            $active_notifs = count(array_filter($notifications, fn($n) => $n[\'status\'] === \'Active\'));
+            $expired_notifs = count(array_filter($notifications, fn($n) => strtotime($n[\'expiry_date\']) < strtotime(date(\'Y-m-d\'))));
             ?>
 
             <!-- Report Summary -->
@@ -183,7 +183,7 @@ require '../includes/sidebar.php';
                                     <th>Target</th>
                                     <th>Expiry Date</th>
                                     <th>Status</th>
-                                    <?php if ($role === 'admin'): ?>
+                                    <?php if ($role === \'admin\'): ?>
                                     <th>Created By</th>
                                     <?php endif; ?>
                                     <th class="text-end">Actions</th>
@@ -192,46 +192,46 @@ require '../includes/sidebar.php';
                             <tbody>
                                 <?php if (empty($notifications)): ?>
                                     <tr>
-                                        <td colspan="<?= $role === 'admin' ? '7' : '6' ?>" class="text-center py-4 text-muted">
+                                        <td colspan="<?= $role === \'admin\' ? \'7\' : \'6\' ?>" class="text-center py-4 text-muted">
                                             No notifications found.
                                         </td>
                                     </tr>
                                 <?php else: ?>
                                     <?php foreach ($notifications as $n): ?>
                                     <tr>
-                                        <td class="fw-semibold text-truncate" style="max-width: 200px;"><?= htmlspecialchars($n['title']) ?></td>
+                                        <td class="fw-semibold text-truncate" style="max-width: 200px;"><?= htmlspecialchars($n[\'title\']) ?></td>
                                         <td class="text-muted text-truncate" style="max-width: 250px; font-size:13px;">
-                                            <?= htmlspecialchars($n['message']) ?>
+                                            <?= htmlspecialchars($n[\'message\']) ?>
                                         </td>
                                         <td>
-                                            <span class="badge bg-<?= $n['target_audience'] === 'Both' ? 'purple' : ($n['target_audience'] === 'Staff' ? 'info' : 'success') ?>">
-                                                <?= $n['target_audience'] ?>
+                                            <span class="badge bg-<?= $n[\'target_audience\'] === \'Both\' ? \'purple\' : ($n[\'target_audience\'] === \'Staff\' ? \'info\' : \'success\') ?>">
+                                                <?= $n[\'target_audience\'] ?>
                                             </span>
                                         </td>
                                         <td>
-                                            <?= date('d M Y', strtotime($n['expiry_date'])) ?>
-                                            <?php if (strtotime($n['expiry_date']) < strtotime(date('Y-m-d'))): ?>
+                                            <?= date(\'d M Y\', strtotime($n[\'expiry_date\'])) ?>
+                                            <?php if (strtotime($n[\'expiry_date\']) < strtotime(date(\'Y-m-d\'))): ?>
                                                 <span class="badge bg-danger ms-1" style="font-size:10px;">Expired</span>
                                             <?php endif; ?>
                                         </td>
                                         <td>
-                                            <?php if ($n['status'] === 'Active'): ?>
+                                            <?php if ($n[\'status\'] === \'Active\'): ?>
                                                 <span class="badge bg-success">Active</span>
                                             <?php else: ?>
                                                 <span class="badge bg-secondary">Inactive</span>
                                             <?php endif; ?>
                                         </td>
-                                        <?php if ($role === 'admin'): ?>
+                                        <?php if ($role === \'admin\'): ?>
                                         <td style="font-size:13px;">
-                                            <?= htmlspecialchars($n['creator_name']) ?> <span class="text-muted">(<?= ucfirst($n['creator_role']) ?>)</span>
+                                            <?= htmlspecialchars($n[\'creator_name\']) ?> <span class="text-muted">(<?= ucfirst($n[\'creator_role\']) ?>)</span>
                                         </td>
                                         <?php endif; ?>
                                         <td class="text-end">
-                                            <a href="edit.php?id=<?= $n['id'] ?>" class="btn btn-sm btn-outline-primary" title="Edit"><i class="bi bi-pencil"></i></a>
-                                            <a href="index.php?action=toggle&id=<?= $n['id'] ?>" class="btn btn-sm btn-outline-<?= $n['status'] === 'Active' ? 'warning' : 'success' ?>" title="Toggle Status">
+                                            <a href="edit.php?id=<?= $n[\'id\'] ?>" class="btn btn-sm btn-outline-primary" title="Edit"><i class="bi bi-pencil"></i></a>
+                                            <a href="index.php?action=toggle&id=<?= $n[\'id\'] ?>" class="btn btn-sm btn-outline-<?= $n[\'status\'] === \'Active\' ? \'warning\' : \'success\' ?>" title="Toggle Status">
                                                 <i class="bi bi-power"></i>
                                             </a>
-                                            <a href="index.php?action=delete&id=<?= $n['id'] ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this notification?');" title="Delete">
+                                            <a href="index.php?action=delete&id=<?= $n[\'id\'] ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm(\'Are you sure you want to delete this notification?\');" title="Delete">
                                                 <i class="bi bi-trash"></i>
                                             </a>
                                         </td>
@@ -246,5 +246,6 @@ require '../includes/sidebar.php';
 
         </div>
     </div>
-    <?php require '../includes/footer.php'; ?>
+    <?php require \'../includes/footer.php\'; ?>
 </div>
+'); echo "Done notifications"; ?>
