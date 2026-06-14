@@ -164,9 +164,21 @@ include '../includes/sidebar.php';
 
     <!-- Attendance table -->
     <div class="card border-0 shadow-sm">
-        <div class="card-header bg-primary text-white fw-semibold">
-            <i class="bi bi-list-ul me-1"></i>
-            <?= $role==='student' ? 'My Attendance Record' : 'Attendance Records' ?>
+        <div class="card-header bg-primary text-white fw-semibold d-flex justify-content-between align-items-center">
+            <span>
+                <i class="bi bi-list-ul me-1"></i>
+                <?= $role==='student' ? 'My Attendance Record' : 'Attendance Records' ?>
+            </span>
+            <?php if (is_admin()): ?>
+            <div class="d-flex gap-2">
+                <button onclick="exportTable('#attendanceTable', 'Attendance Report', 'excel')" class="btn btn-success btn-sm" title="Export to Excel">
+            <i class="bi bi-file-earmark-excel me-1"></i> Excel
+        </button>
+                <button onclick="exportTable('#attendanceTable', 'Attendance Report', 'pdf')" class="btn btn-danger btn-sm" title="Export to PDF">
+            <i class="bi bi-file-earmark-pdf me-1"></i> PDF
+        </button>
+            </div>
+            <?php endif; ?>
         </div>
         <div class="card-body p-3">
             <?php if (empty($att_list)): ?>

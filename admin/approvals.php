@@ -228,7 +228,15 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <strong><i class="bi bi-list-ul me-1"></i>
             <?= $filterStatus === 'all' ? 'All Registrations' : $filterStatus . ' Registrations' ?>
         </strong>
-        <small class="text-muted"><?= count($users) ?> record(s)</small>
+        <div class="d-flex gap-2 align-items-center">
+            <small class="text-muted"><?= count($users) ?> record(s)</small>
+            <button onclick="exportTable('#approvalsTable', 'Registration Approvals Report', 'excel')" class="btn btn-success btn-sm" title="Export to Excel">
+            <i class="bi bi-file-earmark-excel me-1"></i> Excel
+        </button>
+            <button onclick="exportTable('#approvalsTable', 'Registration Approvals Report', 'pdf')" class="btn btn-danger btn-sm" title="Export to PDF">
+            <i class="bi bi-file-earmark-pdf me-1"></i> PDF
+        </button>
+        </div>
     </div>
     <div class="card-body p-0">
         <?php if (empty($users)): ?>

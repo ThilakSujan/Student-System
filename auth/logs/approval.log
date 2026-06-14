@@ -1,2 +1,4 @@
 [2026-06-11 18:25:40] [::1] REGISTRATION_SUBMITTED | user_id=5 | username=Thilak | email=ksthilaksujan2006@gmail.com | status=Pending
 [2026-06-11 18:26:09] [::1] APPROVED | target_user_id=5 | admin=abc | 
+[2026-06-12 06:35:13] [::1] REGISTRATION_SUBMITTED | user_id=6 | username=Thilak | email=ksthilaksujan2006@gmail.com | status=Pending
+[2026-06-12 06:35:47] [::1] APPROVED | target_user_id=6 | admin=abc | 

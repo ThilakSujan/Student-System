@@ -183,8 +183,18 @@ include '../includes/sidebar.php';
 
             <!-- Marks table -->
             <div class="card">
-                <div class="card-header bg-primary text-white">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <h5 class="mb-0"><i class="bi bi-list"></i> Student Marks Summary</h5>
+                    <?php if (is_admin()): ?>
+                    <div class="d-flex gap-2">
+                        <button onclick="exportTable('#marksTable', 'Marks Summary Report', 'excel')" class="btn btn-success btn-sm" title="Export to Excel">
+            <i class="bi bi-file-earmark-excel me-1"></i> Excel
+        </button>
+                        <button onclick="exportTable('#marksTable', 'Marks Summary Report', 'pdf')" class="btn btn-danger btn-sm" title="Export to PDF">
+            <i class="bi bi-file-earmark-pdf me-1"></i> PDF
+        </button>
+                    </div>
+                    <?php endif; ?>
                 </div>
                 <div class="card-body">
                     <?php if (empty($student_summaries)): ?>

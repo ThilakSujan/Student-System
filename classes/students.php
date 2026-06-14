@@ -229,9 +229,19 @@ include '../includes/sidebar.php';
                 <i class="bi bi-people me-2"></i>Enrolled Students
                 <span class="badge ms-1" style="background:rgba(255,255,255,.18);font-size:11px"><?= $total_enrolled ?></span>
             </strong>
-            <a href="assign.php?class_id=<?= $class_id ?>" class="btn btn-sm btn-primary">
-                <i class="bi bi-person-plus me-1"></i><span class="d-none d-sm-inline">Manage </span>Students
-            </a>
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="assign.php?class_id=<?= $class_id ?>" class="btn btn-sm btn-primary">
+                    <i class="bi bi-person-plus me-1"></i><span class="d-none d-sm-inline">Manage </span>Students
+                </a>
+                <?php if (is_admin()): ?>
+                <button onclick="exportTable('table', 'Class Roster', 'excel')" class="btn btn-success btn-sm" title="Export to Excel">
+            <i class="bi bi-file-earmark-excel me-1"></i> Excel
+        </button>
+                <button onclick="exportTable('table', 'Class Roster', 'pdf')" class="btn btn-danger btn-sm" title="Export to PDF">
+            <i class="bi bi-file-earmark-pdf me-1"></i> PDF
+        </button>
+                <?php endif; ?>
+            </div>
         </div>
 
         <?php if (empty($students)): ?>

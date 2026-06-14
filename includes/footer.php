@@ -175,5 +175,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+<script src="/student_system/assets/js/export.js"></script>
 </body>
 </html>

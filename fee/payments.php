@@ -264,8 +264,16 @@ include '../includes/sidebar.php';
 
     <!-- Payments table -->
     <div class="card border-0 shadow-sm">
-        <div class="card-header bg-dark text-white">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
             <strong><i class="bi bi-list-ul me-1"></i>All Payment Records</strong>
+            <div class="d-flex gap-2">
+                <button onclick="exportTable('#paymentsTable', 'Fee Payments Report', 'excel')" class="btn btn-success btn-sm" title="Export to Excel">
+            <i class="bi bi-file-earmark-excel me-1"></i> Excel
+        </button>
+                <button onclick="exportTable('#paymentsTable', 'Fee Payments Report', 'pdf')" class="btn btn-danger btn-sm" title="Export to PDF">
+            <i class="bi bi-file-earmark-pdf me-1"></i> PDF
+        </button>
+            </div>
         </div>
         <div class="card-body p-0">
             <?php if (empty($payments)): ?>

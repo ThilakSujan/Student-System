@@ -278,6 +278,14 @@ include '../includes/sidebar.php';
                         <i class="bi bi-plus-circle-fill me-2"></i>Schedule Exam
                     </a>
                     <?php endif; ?>
+                    <?php if ($user_role === 'admin'): ?>
+                    <button onclick="exportTable('#examTable', 'Exam Schedule Report', 'excel')" class="btn btn-success fw-semibold px-3 py-2" title="Export to Excel">
+            <i class="bi bi-file-earmark-excel me-1"></i> Excel
+        </button>
+                    <button onclick="exportTable('#examTable', 'Exam Schedule Report', 'pdf')" class="btn btn-danger fw-semibold px-3 py-2" title="Export to PDF">
+            <i class="bi bi-file-earmark-pdf me-1"></i> PDF
+        </button>
+                    <?php endif; ?>
                 </div>
             </div>
 

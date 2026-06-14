@@ -85,6 +85,16 @@ include '../includes/sidebar.php';
     <div class="card shadow-sm border-0">
         <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
             <strong><i class="bi bi-list-ul me-1"></i>All Classes</strong>
+            <?php if (is_admin()): ?>
+            <div class="d-flex gap-2">
+                <button onclick="exportTable('#classesTable', 'Classes Report', 'excel')" class="btn btn-success btn-sm" title="Export to Excel">
+            <i class="bi bi-file-earmark-excel me-1"></i> Excel
+        </button>
+                <button onclick="exportTable('#classesTable', 'Classes Report', 'pdf')" class="btn btn-danger btn-sm" title="Export to PDF">
+            <i class="bi bi-file-earmark-pdf me-1"></i> PDF
+        </button>
+            </div>
+            <?php endif; ?>
         </div>
         <div class="card-body p-0">
             <?php if (empty($classes)): ?>

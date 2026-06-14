@@ -59,7 +59,17 @@ require '../includes/sidebar.php';
                     <h2 class="mb-1"><i class="bi bi-bell-fill"></i> Manage Notifications</h2>
                     <p class="text-muted mb-0" style="font-size:13px">Create and manage alerts for students and staff.</p>
                 </div>
-                <a href="add.php" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Create Notification</a>
+                <div class="d-flex gap-2 align-items-center">
+                    <?php if ($role === 'admin'): ?>
+                    <button onclick="exportTable('table', 'Notifications Report', 'excel')" class="btn btn-success btn-sm" title="Export to Excel">
+            <i class="bi bi-file-earmark-excel me-1"></i> Excel
+        </button>
+                    <button onclick="exportTable('table', 'Notifications Report', 'pdf')" class="btn btn-danger btn-sm" title="Export to PDF">
+            <i class="bi bi-file-earmark-pdf me-1"></i> PDF
+        </button>
+                    <?php endif; ?>
+                    <a href="add.php" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Create Notification</a>
+                </div>
             </div>
 
             <?php if (isset($_SESSION['success'])): ?>
