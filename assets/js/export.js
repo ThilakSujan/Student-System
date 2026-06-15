@@ -23,6 +23,9 @@ function exportTable(tableSelector, title, format) {
 
     const headerCells = thead.querySelectorAll('th');
     headerCells.forEach((th, index) => {
+        // Skip the first column (usually '#' or '#ID' which the user requested to remove)
+        if (index === 0) return;
+
         const text = th.innerText.trim();
         // Ignore action columns
         if (text.toLowerCase() !== 'actions' && text.toLowerCase() !== 'action' && !th.classList.contains('no-export')) {

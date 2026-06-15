@@ -95,7 +95,7 @@
         html, body {
             margin: 0;
             padding: 0;
-            background-color: #f8f9fa; /* Prevents white gaps at the bottom of the page */
+            background-color: var(--dash-bg, #f8f9fa); /* Prevents white gaps at the bottom of the page */
         }
 
         /* Sidebar layout */
@@ -125,7 +125,7 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            background-color: #f8f9fa;
+            background-color: var(--dash-bg, transparent);
             min-width: 0;
         }
 
