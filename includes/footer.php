@@ -178,3 +178,77 @@ document.addEventListener('DOMContentLoaded', function() {
 <script src="/student_system/assets/js/export.js"></script>
 </body>
 </html>
+<!-- Global Dark Mode Toggle System -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Select all potential dark mode toggle buttons (could be multiple if in header and sidebar)
+    const darkModeBtns = document.querySelectorAll('#darkModeBtn, .theme-switch');
+    const htmlTag = document.documentElement;
+
+    // The userKey is set globally in header.php (window.dmUserKey)
+    const userKey = window.dmUserKey || 'dark_mode_guest_0';
+
+    // Set initial icons if they exist
+    const updateIcons = (isDark) => {
+        document.querySelectorAll('#darkModeIcon, .bi-moon-stars-fill, .bi-sun-fill').forEach(icon => {
+            if (icon.closest('.theme-switch')) {
+                if (isDark) {
+                    icon.classList.remove('bi-moon-stars-fill');
+                    icon.classList.add('bi-sun-fill');
+                } else {
+                    icon.classList.remove('bi-sun-fill');
+                    icon.classList.add('bi-moon-stars-fill');
+                }
+            }
+        });
+    };
+
+    if (localStorage.getItem(userKey) === 'dark') {
+        updateIcons(true);
+    }
+
+    darkModeBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (htmlTag.getAttribute('data-theme') === 'dark') {
+                htmlTag.removeAttribute('data-theme');
+                localStorage.setItem(userKey, 'light');
+                updateIcons(false);
+            } else {
+                htmlTag.setAttribute('data-theme', 'dark');
+                localStorage.setItem(userKey, 'dark');
+                updateIcons(true);
+            }
+            
+            // Dispatch custom event so charts can update if they are listening
+            window.dispatchEvent(new Event('themeChanged'));
+            
+            // Legacy fallbacks for dashboard charts
+            if (typeof updateChartsTheme === 'function') updateChartsTheme();
+            if (typeof updateStudentChartTheme === 'function') updateStudentChartTheme();
+        });
+    });
+    
+    // Update chart function listener
+    window.addEventListener('themeChanged', () => {
+        if (typeof Chart !== 'undefined') {
+            const isDark = htmlTag.getAttribute('data-theme') === 'dark';
+            const gridColor = isDark ? '#1F2937' : '#E2E8F0';
+            const textColor = isDark ? '#94A3B8' : '#64748B';
+            
+            Chart.instances.forEach(chart => {
+                if (chart.options.scales) {
+                    if (chart.options.scales.x && chart.options.scales.x.grid) chart.options.scales.x.grid.color = gridColor;
+                    if (chart.options.scales.y && chart.options.scales.y.grid) chart.options.scales.y.grid.color = gridColor;
+                    if (chart.options.scales.x && chart.options.scales.x.ticks) chart.options.scales.x.ticks.color = textColor;
+                    if (chart.options.scales.y && chart.options.scales.y.ticks) chart.options.scales.y.ticks.color = textColor;
+                }
+                if (chart.options.plugins && chart.options.plugins.centerText) {
+                    chart.options.plugins.centerText.color = isDark ? "#F8FAFC" : "#0F172A";
+                }
+                chart.update();
+            });
+        }
+    });
+});
+</script>

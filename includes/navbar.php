@@ -417,6 +417,11 @@
             </ul>
         </div>
 
+        <!-- Dark Mode Toggle -->
+        <button id="darkModeBtn" class="navbar-icon-btn theme-switch" title="Toggle Dark Mode" style="border: none; background: transparent;">
+            <i class="bi bi-moon-stars-fill" id="darkModeIcon"></i>
+        </button>
+
         <!-- Profile shortcut -->
         <a href="/student_system/profile/view.php" class="navbar-icon-btn" title="My Profile">
             <i class="bi bi-person-badge"></i>

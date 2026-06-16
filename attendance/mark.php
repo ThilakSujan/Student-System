@@ -316,7 +316,6 @@ tr.status-absent  { background-color: rgba(220,53,69,0.07) !important; }
                         $initial  = is_null($existing) ? 'Present' : $existing;
                         $rowClass = $initial === 'Present' ? 'status-present' : 'status-absent';
                         $toggleClass = strtolower($initial);
-                        if (is_null($existing)) $toggleClass = 'unmarked';
                         $icon  = $initial === 'Present' ? 'bi-check-circle-fill' : 'bi-x-circle-fill';
                         $label = $initial === 'Present' ? 'Present' : 'Absent';
                     ?>

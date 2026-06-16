@@ -324,3 +324,22 @@ function sidebarGroupActive($paths) {
         </a>
     </div>
 </nav>
+
+<script>
+// Preserve sidebar scroll position across page loads
+document.addEventListener('DOMContentLoaded', () => {
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) {
+        // Restore scroll position
+        const scrollPos = sessionStorage.getItem('sidebarScrollPos');
+        if (scrollPos !== null) {
+            sidebar.scrollTop = parseInt(scrollPos, 10);
+        }
+
+        // Save scroll position before leaving the page
+        window.addEventListener('beforeunload', () => {
+            sessionStorage.setItem('sidebarScrollPos', sidebar.scrollTop);
+        });
+    }
+});
+</script>

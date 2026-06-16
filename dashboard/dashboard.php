@@ -232,41 +232,6 @@ require '../includes/sidebar.php';
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-/* ── Premium ERP Theme Variables ── */
-:root {
-    --dash-bg: #F8FAFC;
-    --dash-card-bg: #ffffff;
-    --dash-text: #0F172A;
-    --dash-text-muted: #64748B;
-    --dash-border: #E2E8F0;
-    --dash-input-bg: #F1F5F9;
-    
-    --c-primary: #6366F1;
-    --c-secondary: #8B5CF6;
-    --c-success: #10B981;
-    --c-warning: #F59E0B;
-    --c-danger: #EF4444;
-    --c-info: #3B82F6;
-    
-    --shadow-soft: 0px 10px 25px rgba(15, 23, 42, 0.05);
-    --shadow-hover: 0px 20px 40px rgba(15, 23, 42, 0.1);
-    --radius-lg: 16px;
-    --radius-md: 12px;
-}
-
-[data-theme="dark"] {
-    --dash-bg: #0B0F19;
-    --dash-card-bg: #111827;
-    --dash-text: #F8FAFC;
-    --dash-text-muted: #94A3B8;
-    --dash-border: #1F2937;
-    --dash-input-bg: #1F2937;
-    --shadow-soft: 0px 10px 25px rgba(0, 0, 0, 0.5);
-    --shadow-hover: 0px 20px 40px rgba(0, 0, 0, 0.7);
-}
-
-body { background-color: var(--dash-bg); color: var(--dash-text); transition: background-color 0.3s, color 0.3s; font-family: 'Inter', sans-serif; }
-
 /* ── Components ── */
 .erp-card {
     background: var(--dash-card-bg);
@@ -359,13 +324,6 @@ body { background-color: var(--dash-bg); color: var(--dash-text); transition: ba
 .alert-info { background: rgba(59, 130, 246, 0.1); border-left-color: var(--c-info); color: var(--c-info); }
 .alert-success { background: rgba(16, 185, 129, 0.1); border-left-color: var(--c-success); color: var(--c-success); }
 
-/* Table */
-.table-erp { --bs-table-bg: transparent; --bs-table-color: var(--dash-text); margin-bottom: 0; }
-.table-erp thead th { background: var(--dash-input-bg) !important; color: var(--dash-text-muted) !important; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; border-bottom: none; padding: 14px 20px; position: sticky; top: 0; z-index: 10; }
-.table-erp tbody td { background: transparent !important; padding: 14px 20px; vertical-align: middle; border-bottom: 1px solid var(--dash-border) !important; color: var(--dash-text) !important; font-size: 0.9rem; }
-.table-erp tbody tr { transition: background 0.2s; background: transparent !important; }
-.table-erp tbody tr:hover td { background: var(--dash-input-bg) !important; }
-
 /* Theme Toggle */
 .theme-switch { cursor: pointer; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: var(--dash-card-bg); color: var(--dash-text); box-shadow: var(--shadow-soft); transition: 0.3s; border: 1px solid var(--dash-border); }
 .theme-switch:hover { background: var(--dash-input-bg); }
@@ -428,10 +386,6 @@ body { background-color: var(--dash-bg); color: var(--dash-text); transition: ba
         <div class="input-group d-none d-md-flex" style="width: 260px;">
             <span class="input-group-text erp-search-icon"><i class="bi bi-search"></i></span>
             <input type="text" class="form-control erp-search" placeholder="Search everywhere...">
-        </div>
-        <!-- Dark Mode Toggle -->
-        <div class="theme-switch" id="darkModeBtn" title="Toggle Dark Mode">
-            <i class="bi bi-moon-stars-fill" id="darkModeIcon"></i>
         </div>
     </div>
 </div>
@@ -735,10 +689,6 @@ document.addEventListener("DOMContentLoaded", function() {
             <span class="input-group-text erp-search-icon"><i class="bi bi-search"></i></span>
             <input type="text" class="form-control erp-search" placeholder="Search everywhere...">
         </div>
-        <!-- Dark Mode Toggle -->
-        <div class="theme-switch" id="darkModeBtn" title="Toggle Dark Mode">
-            <i class="bi bi-moon-stars-fill" id="darkModeIcon"></i>
-        </div>
     </div>
 </div>
 
@@ -1039,33 +989,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 <?php require '../includes/footer.php'; ?>
 
-<!-- Global Dark Mode Script -->
-<script>
-const darkModeBtn = document.getElementById('darkModeBtn');
-const darkModeIcon = document.getElementById('darkModeIcon');
-const htmlTag = document.documentElement;
 
-if (localStorage.getItem('theme') === 'dark') {
-    htmlTag.setAttribute('data-theme', 'dark');
-    if (darkModeIcon) darkModeIcon.classList.replace('bi-moon-stars-fill', 'bi-sun-fill');
-}
-
-if (darkModeBtn) {
-    darkModeBtn.addEventListener('click', () => {
-        if (htmlTag.getAttribute('data-theme') === 'dark') {
-            htmlTag.removeAttribute('data-theme');
-            localStorage.setItem('theme', 'light');
-            if (darkModeIcon) darkModeIcon.classList.replace('bi-sun-fill', 'bi-moon-stars-fill');
-        } else {
-            htmlTag.setAttribute('data-theme', 'dark');
-            localStorage.setItem('theme', 'dark');
-            if (darkModeIcon) darkModeIcon.classList.replace('bi-moon-stars-fill', 'bi-sun-fill');
-        }
-        if (typeof updateChartsTheme === 'function') updateChartsTheme();
-        if (typeof updateStudentChartTheme === 'function') updateStudentChartTheme();
-    });
-}
-</script>
 
 <!-- Admin Scripts -->
 <?php if ($user_role !== 'student'): ?>

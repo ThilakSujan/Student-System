@@ -1,7 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <script>
+    (function() {
+        var role = '<?= $_SESSION['role'] ?? 'guest' ?>';
+        var uid = '<?= $_SESSION['user_id'] ?? $_SESSION['student_id'] ?? 0 ?>';
+        window.dmUserKey = 'dark_mode_' + role + '_' + uid;
+        if (localStorage.getItem(window.dmUserKey) === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
+    })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo isset($page_title) ? $page_title . ' – Student System' : 'Student System'; ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -12,6 +21,159 @@
     <script src="https://cdn.jsdelivr.net/npm/datatables.net@1.13.7/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.7/js/dataTables.bootstrap5.min.js"></script>
     <style>
+/* ── Premium ERP Theme Variables ── */
+:root {
+    --dash-bg: #F8FAFC;
+    --dash-card-bg: #ffffff;
+    --dash-text: #0F172A;
+    --dash-text-muted: #64748B;
+    --dash-border: #E2E8F0;
+    --dash-input-bg: #F1F5F9;
+    --dash-sidebar-bg: #0f172a;
+    
+    --c-primary: #6366F1;
+    --c-secondary: #8B5CF6;
+    --c-success: #10B981;
+    --c-warning: #F59E0B;
+    --c-danger: #EF4444;
+    --c-info: #3B82F6;
+    
+    --shadow-soft: 0px 10px 25px rgba(15, 23, 42, 0.05);
+    --shadow-hover: 0px 20px 40px rgba(15, 23, 42, 0.1);
+    --radius-lg: 16px;
+    --radius-md: 12px;
+}
+
+[data-theme="dark"] {
+    --dash-bg: #0F172A;
+    --dash-card-bg: #1E293B;
+    --dash-text: #F8FAFC;
+    --dash-text-muted: #CBD5E1;
+    --dash-border: #475569;
+    --dash-input-bg: #334155;
+    --dash-sidebar-bg: #111827;
+    --shadow-soft: 0px 10px 25px rgba(0, 0, 0, 0.5);
+    --shadow-hover: 0px 20px 40px rgba(0, 0, 0, 0.7);
+}
+
+/* Base Body Styles */
+body { background-color: var(--dash-bg) !important; color: var(--dash-text); transition: background-color 0.3s, color 0.3s; font-family: 'Inter', sans-serif; }
+
+/* Global Forms & Inputs */
+.form-control, .form-select {
+    background-color: var(--dash-card-bg) !important;
+    color: var(--dash-text) !important;
+    border-color: var(--dash-border) !important;
+}
+.form-control::placeholder { color: var(--dash-text-muted) !important; }
+.form-control:focus, .form-select:focus {
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.2);
+    border-color: var(--c-primary) !important;
+}
+
+/* Global Modals */
+.modal-content {
+    background-color: var(--dash-card-bg) !important;
+    color: var(--dash-text) !important;
+    border-color: var(--dash-border) !important;
+}
+.modal-header, .modal-footer {
+    border-color: var(--dash-border) !important;
+}
+.btn-close {
+    filter: var(--dash-bg) === '#0F172A' ? invert(1) grayscale(100%) brightness(200%) : none;
+}
+[data-theme="dark"] .btn-close { filter: invert(1) grayscale(100%) brightness(200%); }
+
+/* Global Cards & Headings */
+h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6, p, label {
+    color: var(--dash-text) !important;
+}
+
+.text-muted {
+    color: var(--dash-text-muted) !important;
+}
+
+.card {
+    background-color: var(--dash-card-bg) !important;
+    color: var(--dash-text) !important;
+    border-color: var(--dash-border) !important;
+}
+.card-header, .card-footer {
+    background-color: var(--dash-card-bg) !important;
+    color: var(--dash-text) !important;
+    border-color: var(--dash-border) !important;
+}
+.card-title {
+    color: var(--dash-text) !important;
+}
+
+/* Global Tables & DataTables */
+.table {
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--dash-text);
+    color: var(--dash-text);
+}
+.table thead th {
+    background-color: var(--dash-input-bg) !important;
+    color: var(--dash-text-muted) !important;
+    border-bottom: 2px solid var(--dash-border) !important;
+}
+.table tbody td {
+    background-color: transparent !important;
+    color: var(--dash-text) !important;
+    border-bottom: 1px solid var(--dash-border) !important;
+}
+.table tbody tr:hover td {
+    background-color: var(--dash-input-bg) !important;
+}
+div.dataTables_wrapper div.dataTables_filter input {
+    background-color: var(--dash-card-bg) !important;
+    color: var(--dash-text) !important;
+    border-color: var(--dash-border) !important;
+}
+div.dataTables_wrapper div.dataTables_length select {
+    background-color: var(--dash-card-bg) !important;
+    color: var(--dash-text) !important;
+    border-color: var(--dash-border) !important;
+}
+div.dataTables_wrapper div.dataTables_info {
+    color: var(--dash-text-muted) !important;
+}
+.page-item .page-link {
+    background-color: var(--dash-card-bg) !important;
+    border-color: var(--dash-border) !important;
+    color: var(--dash-text) !important;
+}
+.page-item.active .page-link {
+    background-color: var(--c-primary) !important;
+    border-color: var(--c-primary) !important;
+    color: white !important;
+}
+
+/* Sidebar Overrides */
+#sidebar {
+    background-color: var(--dash-sidebar-bg) !important;
+}
+#sidebar .sidebar-brand { border-bottom-color: var(--dash-border) !important; }
+#sidebar .nav-link:hover { background-color: rgba(255,255,255,0.05) !important; }
+
+/* ── Print Exception ── */
+@media print {
+    :root, [data-theme="dark"] {
+        --dash-bg: #FFFFFF !important;
+        --dash-card-bg: #FFFFFF !important;
+        --dash-text: #000000 !important;
+        --dash-text-muted: #333333 !important;
+        --dash-border: #CCCCCC !important;
+        --dash-input-bg: #FFFFFF !important;
+    }
+    body { background-color: #FFFFFF !important; color: #000000 !important; }
+    .card, .table { border-color: #000000 !important; box-shadow: none !important; }
+    .btn, .action-btn, #sidebar, .theme-switch, .navbar { display: none !important; }
+    #content, #main-content { padding: 0 !important; margin: 0 !important; width: 100% !important; }
+}
+
         /* ══════════════════════════════════════════════════════
            RESPONSIVE LAYOUT STYLES
         ══════════════════════════════════════════════════════ */
@@ -95,7 +257,7 @@
         html, body {
             margin: 0;
             padding: 0;
-            background-color: var(--dash-bg, #f8f9fa); /* Prevents white gaps at the bottom of the page */
+            /* Removed background color */ at the bottom of the page */
         }
 
         /* Sidebar layout */
@@ -125,7 +287,7 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            background-color: var(--dash-bg, transparent);
+            /* Removed background color */
             min-width: 0;
         }
 
