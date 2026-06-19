@@ -418,7 +418,7 @@
         </div>
 
         <!-- Dark Mode Toggle -->
-        <button id="darkModeBtn" class="navbar-icon-btn theme-switch" title="Toggle Dark Mode" style="border: none; background: transparent;">
+        <button id="darkModeBtn" class="navbar-icon-btn theme-switch" title="Toggle Dark Mode">
             <i class="bi bi-moon-stars-fill" id="darkModeIcon"></i>
         </button>
 

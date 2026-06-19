@@ -48,12 +48,19 @@ if (isset($_POST['save_student'])) {
             $skills = implode(",", array_map('trim', $skills_selected));
             $pe = mysqli_real_escape_string($conn, $parent_email);
             $pn = mysqli_real_escape_string($conn, $parent_name);
+
+            // Get next consecutive ID (no gaps even after deletions)
+            $id_res  = mysqli_query($conn, "SELECT COALESCE(MAX(id), 0) + 1 AS next_id FROM students");
+            $next_id = (int) mysqli_fetch_assoc($id_res)['next_id'];
+
             $query = "INSERT INTO students
-                (student_name, email, parent_name, parent_email, phone, gender, department, skills, dob, status)
+                (id, student_name, email, parent_name, parent_email, phone, gender, department, skills, dob, status)
                 VALUES
-                ('$student_name','$email','$pn','$pe','$phone','$gender','$department','$skills','$dob','Active')";
+                ($next_id,'$student_name','$email','$pn','$pe','$phone','$gender','$department','$skills','$dob','Active')";
 
             if (mysqli_query($conn, $query)) {
+                // Keep AUTO_INCREMENT in sync so it never diverges
+                mysqli_query($conn, "ALTER TABLE students AUTO_INCREMENT = 1");
                 $success = "Student added successfully!";
                 // Clear form
                 $student_name = $email = $phone = $gender = $department = $dob = '';
@@ -61,6 +68,7 @@ if (isset($_POST['save_student'])) {
             } else {
                 $error = "Failed to add student.";
             }
+
         }
     }
 }
