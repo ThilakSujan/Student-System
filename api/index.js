@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const app = require('../app'); // Import the Express app
+const app = require('../server/app'); // Import the Express app
 
 let cachedDb = null;
 
