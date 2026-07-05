@@ -1,0 +1,62 @@
+{"level":"warn","message":"401 - Invalid email or password - /api/auth/login - POST","service":"student-system","timestamp":"2026-07-05 14:20:25"}
+{"level":"warn","message":"401 - Invalid email or password - /api/auth/login - POST","service":"student-system","timestamp":"2026-07-05 14:20:45"}
+{"level":"warn","message":"401 - Invalid email or password - /api/auth/login - POST","service":"student-system","timestamp":"2026-07-05 14:20:57"}
+{"level":"warn","message":"401 - Invalid email or password - /api/auth/login - POST","service":"student-system","timestamp":"2026-07-05 14:20:59"}
+{"level":"warn","message":"401 - Invalid email or password - /api/auth/login - POST","service":"student-system","timestamp":"2026-07-05 14:21:51"}
+{"level":"warn","message":"401 - Invalid email or password - /api/auth/login - POST","service":"student-system","timestamp":"2026-07-05 14:22:16"}
+{"level":"warn","message":"401 - Invalid email or password - /api/auth/login - POST","service":"student-system","timestamp":"2026-07-05 14:23:11"}
+{"level":"warn","message":"401 - Invalid email or password - /api/auth/login - POST","service":"student-system","timestamp":"2026-07-05 14:28:14"}
+{"level":"warn","message":"401 - Invalid email or password - /api/auth/login - POST","service":"student-system","timestamp":"2026-07-05 14:28:39"}
+{"level":"warn","message":"401 - Invalid email or password - /api/auth/login - POST","service":"student-system","timestamp":"2026-07-05 14:40:47"}
+{"level":"warn","message":"401 - Invalid email or password - /api/auth/login - POST","service":"student-system","timestamp":"2026-07-05 14:41:38"}
+{"level":"warn","message":"401 - Invalid email or password - /api/auth/login - POST","service":"student-system","timestamp":"2026-07-05 14:42:47"}
+{"level":"warn","message":"401 - Invalid email or password - /api/auth/login - POST","service":"student-system","timestamp":"2026-07-05 14:43:33"}
+{"level":"warn","message":"401 - Invalid email or password - /api/auth/login - POST","service":"student-system","timestamp":"2026-07-05 14:49:39"}
+{"level":"warn","message":"401 - Invalid email or password - /api/auth/login - POST","service":"student-system","timestamp":"2026-07-05 15:02:58"}
+{"level":"warn","message":"401 - Invalid email or password - /api/auth/login - POST","service":"student-system","timestamp":"2026-07-05 15:03:11"}
+{"level":"warn","message":"401 - Invalid email or password - /api/auth/login - POST","service":"student-system","timestamp":"2026-07-05 15:06:07"}
+{"level":"warn","message":"401 - Invalid email or password - /api/auth/login - POST","service":"student-system","timestamp":"2026-07-05 15:11:31"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/dashboard/stats - GET","service":"student-system","timestamp":"2026-07-05 15:30:48"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/dashboard/stats - GET","service":"student-system","timestamp":"2026-07-05 15:30:48"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/dashboard/stats - GET","service":"student-system","timestamp":"2026-07-05 15:30:57"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/dashboard/stats - GET","service":"student-system","timestamp":"2026-07-05 15:30:57"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/dashboard/stats - GET","service":"student-system","timestamp":"2026-07-05 15:31:11"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/dashboard/stats - GET","service":"student-system","timestamp":"2026-07-05 15:31:11"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/students - GET","service":"student-system","timestamp":"2026-07-05 15:31:16"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/students - GET","service":"student-system","timestamp":"2026-07-05 15:31:16"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/dashboard/stats - GET","service":"student-system","timestamp":"2026-07-05 15:31:19"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/dashboard/stats - GET","service":"student-system","timestamp":"2026-07-05 15:31:19"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/dashboard/stats - GET","service":"student-system","timestamp":"2026-07-05 15:31:25"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/dashboard/stats - GET","service":"student-system","timestamp":"2026-07-05 15:31:25"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/dashboard/stats - GET","service":"student-system","timestamp":"2026-07-05 15:31:27"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/dashboard/stats - GET","service":"student-system","timestamp":"2026-07-05 15:31:27"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/dashboard/stats - GET","service":"student-system","timestamp":"2026-07-05 15:31:45"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/dashboard/stats - GET","service":"student-system","timestamp":"2026-07-05 15:31:46"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/students - GET","service":"student-system","timestamp":"2026-07-05 15:43:59"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/students - GET","service":"student-system","timestamp":"2026-07-05 15:43:59"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/auth/me - GET","service":"student-system","timestamp":"2026-07-05 15:44:03"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/auth/me - GET","service":"student-system","timestamp":"2026-07-05 15:44:03"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/dashboard/stats - GET","service":"student-system","timestamp":"2026-07-05 15:53:36"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/dashboard/stats - GET","service":"student-system","timestamp":"2026-07-05 15:53:36"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/students - GET","service":"student-system","timestamp":"2026-07-05 15:53:57"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/students - GET","service":"student-system","timestamp":"2026-07-05 15:53:57"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/staff - GET","service":"student-system","timestamp":"2026-07-05 15:53:58"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/staff - GET","service":"student-system","timestamp":"2026-07-05 15:53:58"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/students - GET","service":"student-system","timestamp":"2026-07-05 15:54:01"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/students - GET","service":"student-system","timestamp":"2026-07-05 15:54:01"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/subjects - GET","service":"student-system","timestamp":"2026-07-05 15:54:03"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/subjects - GET","service":"student-system","timestamp":"2026-07-05 15:54:03"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/exams - GET","service":"student-system","timestamp":"2026-07-05 15:54:05"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/exams - GET","service":"student-system","timestamp":"2026-07-05 15:54:05"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/users/pending - GET","service":"student-system","timestamp":"2026-07-05 15:54:07"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/users/pending - GET","service":"student-system","timestamp":"2026-07-05 15:54:07"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/users/pending - GET","service":"student-system","timestamp":"2026-07-05 15:54:24"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/users/pending - GET","service":"student-system","timestamp":"2026-07-05 15:54:24"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/students - GET","service":"student-system","timestamp":"2026-07-05 15:54:40"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/students - GET","service":"student-system","timestamp":"2026-07-05 15:54:40"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/students - POST","service":"student-system","timestamp":"2026-07-05 15:55:38"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/students - GET","service":"student-system","timestamp":"2026-07-05 15:55:45"}
+{"level":"warn","message":"403 - Your account has been deactivated. - /api/students - GET","service":"student-system","timestamp":"2026-07-05 15:55:45"}
+{"level":"warn","message":"401 - Authentication required. Please log in. - /api/students - GET","service":"student-system","timestamp":"2026-07-05 16:03:06"}
+{"level":"warn","message":"401 - Invalid email or password - /api/auth/login - POST","service":"student-system","timestamp":"2026-07-05 16:20:28"}
+{"level":"warn","message":"401 - Invalid email or password - /api/auth/login - POST","service":"student-system","timestamp":"2026-07-05 16:21:36"}
